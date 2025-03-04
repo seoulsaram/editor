@@ -77,23 +77,16 @@ class FabricCanvas {
 
   hideTooltip() {
     if (this.menuRef !== null) {
-      this.menuRef.style.transition = 'opacity 0.1s';
-      this.menuRef.style.opacity = '0';
-      setTimeout(() => {
-        if (this.menuRef !== null) this.menuRef.style.display = 'none';
-      }, 100);
+      this.menuRef.style.transition = 'all 0.1s';
+      this.menuRef.style.transform = 'translateY(100%)';
     }
   }
 
   showTooltip(obj: fabric.Object) {
     const menu = this.menuRef;
     if (!menu || !obj) return;
-    menu.style.transition = 'opacity 0.1s';
-    menu.style.display = 'block';
-
-    setTimeout(() => {
-      menu.style.opacity = '1';
-    }, 100);
+    menu.style.transition = 'all 0.1s';
+    menu.style.transform = 'translateY(0%)';
   }
 
   private addEvents() {

@@ -259,7 +259,8 @@ export default function Editor({ bgImage, onSubmit }: Props) {
         </div>
         <div
           ref={menuRef}
-          className='overflow-hidden hidden border-[1px] border-blue-600 bg-blue-100 divide-y-[1px] divide-blue-600 rounded-lg'
+          style={{ transform: 'translateY(100%)' }}
+          className='fixed bottom-0 left-0  w-full overflow-hidden  border-[1px] border-blue-600 bg-blue-100 divide-y-[1px] divide-blue-600'
         >
           <button onClick={changeFontStyle} className={btn}>
             폰트변경

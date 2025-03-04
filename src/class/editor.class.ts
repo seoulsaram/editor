@@ -50,6 +50,12 @@ class TextCanvas extends FabricCanvas {
     const object = await fabric.FabricImage.fromURL(objectPath, {
       crossOrigin: 'anonymous',
     });
+    const shadow = new fabric.Shadow({
+      color: 'rgba(10,10,10,0.5)',
+      blur: 3,
+      offsetX: 1,
+      offsetY: 1,
+    });
 
     object.lockScalingFlip = true;
     object.lockScalingFlip = true;
@@ -58,8 +64,7 @@ class TextCanvas extends FabricCanvas {
     object.centeredRotation = true;
     object.minScaleLimit = 0.3;
     object.centeredScaling = true;
-    // object.scaleX = objectScale;
-    // object.scaleY = objectScale;
+    object.shadow = shadow;
 
     const centerX = this.canvas.getWidth() / 2;
     const centerY = this.canvas.getHeight() / 2;
