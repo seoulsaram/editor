@@ -13,7 +13,7 @@ export default function Home() {
   };
 
   return (
-    <div className='min-h-screen p-8 pb-20 gap-16'>
+    <div className='min-h-screen p-8 pb-20 flex flex-col items-center justify-center'>
       <main>
         <label className='flex flex-col gap-4 cursor-pointer'>
           이미지 첨부하기
@@ -29,7 +29,7 @@ export default function Home() {
             }}
           />
         </label>
-        <div className='mt-4 flex flex-col gap-4 row-start-2 items-center sm:items-start'>
+        <div className='mt-4 flex flex-col gap-4 row-start-2 items-center'>
           {imgFile && <Editor bgImage={imgFile} onSubmit={handleSubmit} />}
         </div>
       </main>
