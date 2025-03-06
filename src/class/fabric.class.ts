@@ -46,7 +46,7 @@ class FabricCanvas {
       selection: false,
       backgroundColor: 'white',
     });
-
+    this.cleanCanvas();
     this.addEvents();
   }
 
@@ -85,8 +85,20 @@ class FabricCanvas {
   showTooltip(obj: fabric.Object) {
     const menu = this.menuRef;
     if (!menu || !obj) return;
+
     menu.style.transition = 'all 0.1s';
     menu.style.transform = 'translateY(0%)';
+    const elements = Array.from(menu.children);
+
+    elements.forEach((el) => {
+      const btn = el as HTMLButtonElement;
+      const btnType = btn.dataset.type;
+      if (obj.type === 'image' && btnType === 'text') {
+        btn.style.display = 'none';
+      } else {
+        btn.style.display = 'block';
+      }
+    });
   }
 
   private addEvents() {
@@ -276,6 +288,14 @@ class FabricCanvas {
       width: this.bgWidth || this.canvas.width,
       height: this.bgHeight || this.canvas.height,
     });
+  }
+
+  private cleanCanvas() {
+    this.hideTooltip();
+    // this.menuRef = null;
+    this.bgWidth = undefined;
+    this.bgHeight = undefined;
+    this.controlImage = undefined;
   }
 }
 
