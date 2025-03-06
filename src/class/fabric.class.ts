@@ -29,6 +29,7 @@ class FabricCanvas {
   protected isAdjusted?: boolean;
   protected controlImage?: HTMLImageElement;
   public menuRef: HTMLDivElement | null;
+  protected defaultTextColor: string = '#ffffff';
 
   constructor(
     containerId: string,
@@ -73,6 +74,30 @@ class FabricCanvas {
     bg.scaleY = this.height / bg.height;
     this.canvas.backgroundImage = bg;
     this.canvas.renderAll();
+
+    const pixels = this.canvas
+      .getContext()
+      .getImageData(0, 0, width, height).data;
+
+    this.defaultTextColor = this.extractCommonColor(pixels);
+  }
+
+  extractCommonColor(pixels: Uint8ClampedArray) {
+    let totalGray = 0;
+    const pixelCount = pixels.length / 4; // RGBA (4채널이므로 4로 나눔)
+
+    for (let i = 0; i < pixels.length; i += 4) {
+      const r = pixels[i]; // Red
+      const g = pixels[i + 1]; // Green
+      const b = pixels[i + 2]; // Blue
+      const gray = (r + g + b) / 3; // 평균 밝기 계산
+      totalGray += gray;
+    }
+
+    const averageGray = totalGray / pixelCount; // 전체 평균 밝기
+
+    const result = averageGray >= 128 ? '#000000' : '#ffffff';
+    return result;
   }
 
   hideTooltip() {

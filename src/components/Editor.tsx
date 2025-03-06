@@ -86,10 +86,6 @@ export default function Editor({ bgImage, onSubmit }: Props) {
 
   const colorRef = useRef<HTMLInputElement | null>(null);
 
-  // function preventWheel(e: WheelEvent) {
-  //   e.preventDefault();
-  // }
-
   /* load fonts */
   useEffect(() => {
     const loadFont = (fontName: string, fontUrl: string): Promise<void> => {
@@ -140,7 +136,7 @@ export default function Editor({ bgImage, onSubmit }: Props) {
   }, [bgImage]);
 
   function addText() {
-    canvas?.addText('text');
+    canvas?.addText({ content: 'Hello 월드', font: styleRef.current.curr });
   }
 
   function changeFontStyle() {
@@ -172,6 +168,11 @@ export default function Editor({ bgImage, onSubmit }: Props) {
     if (!canvas) return;
     canvas.changeFontColor(e.target.value);
     colorRef.current?.blur();
+  }
+
+  function changeTextAlign() {
+    if (!canvas) return;
+    canvas.changeTextAlign();
   }
 
   function deleteText() {
@@ -252,6 +253,9 @@ export default function Editor({ bgImage, onSubmit }: Props) {
           }}
           className='fixed bottom-0 left-0  w-full overflow-hidden rounded-tl-xl border-[1px] border-black/10 rounded-tr-xl bg-white/50 backdrop-blur-2xl divide-y-[1px] divide-black/10'
         >
+          <button onClick={changeTextAlign} data-type='text' className={btn}>
+            정렬 변경
+          </button>
           <button onClick={changeFontStyle} data-type='text' className={btn}>
             폰트변경
           </button>

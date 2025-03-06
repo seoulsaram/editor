@@ -2,7 +2,7 @@ import * as fabric from 'fabric';
 import FabricCanvas from './fabric.class';
 
 class TextCanvas extends FabricCanvas {
-  public addText(content?: string) {
+  public addText({ content, font }: { content?: string; font?: string }) {
     const shadow = new fabric.Shadow({
       color: 'rgba(10,10,10,0.5)',
       blur: 3,
@@ -14,7 +14,7 @@ class TextCanvas extends FabricCanvas {
       left: 100,
       top: 100,
       editable: true,
-      fontFamily: 'SB Font',
+      fontFamily: font || 'SB Font',
       fontWeight: '300',
       lockScalingFlip: true,
       lockSkewingX: true,
@@ -22,6 +22,7 @@ class TextCanvas extends FabricCanvas {
       centeredRotation: true,
       minScaleLimit: 1,
       centeredScaling: true,
+      fill: this.defaultTextColor,
       shadow,
     });
 
@@ -147,6 +148,19 @@ class TextCanvas extends FabricCanvas {
     if (!this.activeObject || this.activeObject.type !== 'i-text') return;
     const activeText = this.activeObject as fabric.IText;
     activeText.set('fontWeight', weight);
+    this.canvas.requestRenderAll();
+  }
+
+  changeTextAlign(align?: string) {
+    if (!this.activeObject || this.activeObject.type !== 'i-text') return;
+    const activeText = this.activeObject as fabric.IText;
+
+    const aligns = ['left', 'center', 'right'];
+    const currentAlign = activeText.textAlign;
+    const currentIdx = aligns.indexOf(currentAlign);
+    const nextIdx = (currentIdx + 1) % aligns.length;
+    const nextAlign = align ? align : aligns[nextIdx];
+    activeText.set('textAlign', nextAlign);
     this.canvas.requestRenderAll();
   }
 
