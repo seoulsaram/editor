@@ -47,11 +47,6 @@ const icons = [
   '/target.svg',
 ];
 
-/* 
-TODO: 
-1. agent 처리
-2. tooltip text, icon별로 별도로 display
-*/
 export default function Editor({ bgImage, onSubmit }: Props) {
   const containerRef = useRef<HTMLCanvasElement>(null);
   const [canvas, setCanvas] = useState<TextCanvas | null>(null);
@@ -59,8 +54,6 @@ export default function Editor({ bgImage, onSubmit }: Props) {
   const [submitted, setSubmitted] = useState(false);
 
   const menuRef = useRef<HTMLDivElement | null>(null);
-
-  // const agent = useAgentStore().agent;
 
   const styleRef = useRef<StyleRef>({
     NotoSansKR: {
@@ -93,9 +86,9 @@ export default function Editor({ bgImage, onSubmit }: Props) {
 
   const colorRef = useRef<HTMLInputElement | null>(null);
 
-  function preventWheel(e: WheelEvent) {
-    e.preventDefault();
-  }
+  // function preventWheel(e: WheelEvent) {
+  //   e.preventDefault();
+  // }
 
   /* load fonts */
   useEffect(() => {
@@ -141,16 +134,10 @@ export default function Editor({ bgImage, onSubmit }: Props) {
       setIsLoading(false);
     }
 
-    /* mobile환경에서만 wheel이벤트 방지 */
-    // if (agent !== 'desktop') {
-    //   window.addEventListener('wheel', preventWheel, { passive: false });
-    // }
-
     return () => {
       canvasInstance.getCanvas().dispose();
-      window.removeEventListener('wheel', preventWheel);
     };
-  }, [bgImage /* agent */]);
+  }, [bgImage]);
 
   function addText() {
     canvas?.addText('text');
@@ -249,7 +236,7 @@ export default function Editor({ bgImage, onSubmit }: Props) {
               텍스트 추가
             </button>
             <button
-              className='p-2 w-full border-[1px] border-blue-500 text-blue-500 font-semibold rounded-lg '
+              className='p-2 w-full border-[1px] border-blue-500 text-blue-500 bg-white font-semibold rounded-lg '
               onClick={handleSubmit}
               disabled={submitted}
             >
