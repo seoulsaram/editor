@@ -209,7 +209,7 @@ export default function Editor({ bgImage, onSubmit }: Props) {
   };
 
   const btn =
-    'w-full p-3 text-blue-600 font-semibold flex items-center justify-center';
+    'w-full p-3 text-blue-500 font-[700] flex items-center justify-center';
   return (
     <>
       {isLoading && (
@@ -242,14 +242,14 @@ export default function Editor({ bgImage, onSubmit }: Props) {
             style={{ maxWidth: canvas?.getCanvasSize().width }}
           >
             <button
-              className='p-2 w-full bg-blue-600 text-white font-semibold rounded-lg '
+              className='p-2 w-full bg-blue-500 text-white font-semibold rounded-lg '
               onClick={addText}
               disabled={submitted}
             >
               텍스트 추가
             </button>
             <button
-              className='p-2 w-full border-[1px] border-blue-600 text-blue-600 font-semibold rounded-lg '
+              className='p-2 w-full border-[1px] border-blue-500 text-blue-500 font-semibold rounded-lg '
               onClick={handleSubmit}
               disabled={submitted}
             >
@@ -259,16 +259,23 @@ export default function Editor({ bgImage, onSubmit }: Props) {
         </div>
         <div
           ref={menuRef}
-          style={{ transform: 'translateY(100%)' }}
-          className='fixed bottom-0 left-0  w-full overflow-hidden  border-[1px] border-blue-600 bg-blue-100 divide-y-[1px] divide-blue-600'
+          style={{
+            transform: 'translateY(100%)',
+            boxShadow: 'rgba(100, 100, 111, 0.7) 0px 7px 29px 0px',
+          }}
+          className='fixed bottom-0 left-0  w-full overflow-hidden rounded-tl-xl border-[1px] border-black/10 rounded-tr-xl bg-white/50 backdrop-blur-2xl divide-y-[1px] divide-black/10'
         >
-          <button onClick={changeFontStyle} className={btn}>
+          <button onClick={changeFontStyle} data-type='text' className={btn}>
             폰트변경
           </button>
-          <button onClick={changeFontWeight} className={btn}>
+          <button onClick={changeFontWeight} data-type='text' className={btn}>
             굵기 변경
           </button>
-          <button onClick={handleColorChangeBtnClick} className={btn}>
+          <button
+            onClick={handleColorChangeBtnClick}
+            data-type='text'
+            className={btn}
+          >
             색상 변경
             <input
               ref={colorRef}
@@ -277,7 +284,7 @@ export default function Editor({ bgImage, onSubmit }: Props) {
               className='cursor-pointer absolute top-2 left-3 opacity-0'
             />
           </button>
-          <button onClick={deleteText} className={btn}>
+          <button onClick={deleteText} className={`${btn} text-red-600`}>
             삭제
           </button>
         </div>

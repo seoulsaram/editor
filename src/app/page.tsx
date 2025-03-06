@@ -20,7 +20,7 @@ export default function Home() {
           <input
             type='file'
             accept='image/*'
-            className='p-3 rounded-lg border-[1px]'
+            className='p-3 rounded-lg border-[1px] border-black/20'
             onChange={(e) => {
               const file = e?.target?.files?.[0];
               if (file) {
