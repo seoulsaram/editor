@@ -3,21 +3,6 @@ import { fileToDataURL, resizeImageSize } from '../utils/image.utils';
 
 const MAX_SCALE = 10;
 
-// Base64 이미지 데이터
-const base64Image = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB8AAAAfCAYAAAAfrhY5AAAACXBIWXMAABYlAAAWJQFJUiTwAAAA
-AXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAJeSURBVHgBxVddTvswDHf7l/4SgofywHtvwDjB
-egO4AbsBuwHjBHQnoLsBN2A7wTYh8QISfeRLMIlPIYGx4ySUsdG0XeEnpfHWxD/bTRwH4A/huQ5E
-GAbUNQD8TfoVkRxSC/TrCbURqaP2PvBg49BFZy65kPo7JLUzZHlISXVChvTIkBTKkCOMmbRjSaNl
-gOYK9dTC/9IYkzfy+1la75b6l4wRuEcGJFAERLyPMELVolPEo3t0Bo/lOWY+6SpAPDpQk4JjxP0r
-LA2eyzrEiAMHYu1xeII4fMLKYB2sKy8CtLha1uNFEGcNsBEYtmcRh/TyXA2oEup5YJ0S/ju9bcH/
-pPe3gfcur+j2GpTG3uXs/1kn7xLZOe0pz7XXRVb1NDoX4t08sO6M974O+ZbyurFkrCvncefi5zHR
-Stb7hgl7pJ6tVaiN2BqwbKQtTe6tq259CQqjCDGjaSLrNY3nDXkWJC9KzDApmSRDLrk7+AfOKEP8
-lTzwoQzKEk/BkE/UM33Nn1GVmE9ALRny1Il8ER7zsaslTY4D1Q0eoFZixtiQ49h4LmVP/xFqJWYk
-d0bqiw2U6iTlVUyvefhMr+fMqzynMocWHHatl3XB6saeJdeIgVd9n7579xoWju4NKN2yuJNv7/mg
-/4ViojXXQHoZ11dGDWPIAw1KbATiClVNfJ31OAFX2Aio0vmsROl8limdZ3ucc2ng7+PtglyN5NTj
-M5+PXpbNQcSZkdvgURZV3yarib40FCfXBoTUtWio1HhuMFs3lm08G84XRW0Il1uRLj64BsheFFOd
-pjlbjn4iNfgAZGFiCtpQvNsAAAAASUVORK5CYII=`;
-
 type ObjEvents = keyof fabric.ObjectEvents;
 class FabricCanvas {
   protected canvas!: fabric.Canvas;
@@ -240,26 +225,6 @@ class FabricCanvas {
     ctx.fill();
     ctx.strokeStyle = '#99c0ff';
     ctx.stroke();
-  }
-
-  renderCircleAnchorWithTriangle(
-    ctx: CanvasRenderingContext2D,
-    left: number,
-    top: number
-  ) {
-    if (this.controlImage) {
-      ctx.drawImage(this.controlImage, left - 7, top - 7, 14, 14); // x=50, y=50에 200x200 크기로 렌더링
-    } else {
-      // 이미지 객체 생성
-      const img = new Image();
-      img.src = base64Image;
-
-      img.onload = () => {
-        this.controlImage = img;
-        // 이미지가 로드된 후 캔버스에 렌더링
-        ctx.drawImage(img, left - 7, top - 7, 14, 14); // x=50, y=50에 200x200 크기로 렌더링
-      };
-    }
   }
 
   setActiveObject(obj: fabric.Object | null) {

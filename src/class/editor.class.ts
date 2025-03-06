@@ -119,7 +119,7 @@ class TextCanvas extends FabricCanvas {
       }),
       br: new fabric.Control({
         ...text.controls.br,
-        render: this.renderCircleAnchorWithTriangle,
+        render: this.renderRctAnchor,
       }),
       tl: new fabric.Control({
         ...text.controls.tl,
