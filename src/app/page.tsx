@@ -6,6 +6,7 @@ import { saveBase64Image } from '../utils/image.utils';
 import Image from 'next/image';
 
 export default function Home() {
+  //image, video
   const [imgFile, setImgFile] = useState<File | null>(null);
   const [bg, setBg] = useState<string>('');
 
@@ -42,7 +43,7 @@ export default function Home() {
           이미지 첨부하기
           <input
             type='file'
-            accept='image/*'
+            accept='image/*, video/*'
             className='p-3 rounded-lg border-[1px] border-black/20'
             onChange={(e) => {
               const file = e?.target?.files?.[0];

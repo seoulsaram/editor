@@ -21,3 +21,21 @@ export function hexToRgba(hex: string, alpha = 0.5) {
   // RGBA 문자열 반환
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
+
+export function extractCommonColor(pixels: Uint8ClampedArray) {
+  let totalGray = 0;
+  const pixelCount = pixels.length / 4; // RGBA (4채널이므로 4로 나눔)
+
+  for (let i = 0; i < pixels.length; i += 4) {
+    const r = pixels[i]; // Red
+    const g = pixels[i + 1]; // Green
+    const b = pixels[i + 2]; // Blue
+    const gray = (r + g + b) / 3; // 평균 밝기 계산
+    totalGray += gray;
+  }
+
+  const averageGray = totalGray / pixelCount; // 전체 평균 밝기
+
+  const result = averageGray >= 128 ? '#000000' : '#ffffff';
+  return result;
+}

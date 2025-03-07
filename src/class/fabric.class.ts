@@ -1,5 +1,6 @@
 import * as fabric from 'fabric';
 import { fileToDataURL, resizeImageSize } from '../utils/image.utils';
+import { extractCommonColor } from '../utils/color.utils';
 
 const MAX_SCALE = 10;
 
@@ -37,7 +38,62 @@ class FabricCanvas {
   }
 
   public async addBgImage(bgImgPath: File) {
-    const url = await fileToDataURL(bgImgPath);
+    if (bgImgPath.type.includes('video')) {
+      this.renderVideo(bgImgPath);
+    } else {
+      this.renderImage(bgImgPath);
+    }
+  }
+
+  renderVideo(file: File) {
+    const videoEl = document.createElement('video');
+    videoEl.id = 'video1';
+    videoEl.src = URL.createObjectURL(file);
+    document.body.appendChild(videoEl);
+
+    videoEl.onloadedmetadata = () => {
+      // ✅ 비디오 원본 크기로 설정
+      const originalW = videoEl.videoWidth;
+      const originalH = videoEl.videoHeight;
+
+      videoEl.width = originalW;
+      videoEl.height = originalH;
+
+      // ✅ 크기 조정
+      const { width, height } = resizeImageSize(
+        originalW,
+        originalH,
+        this.width,
+        this.height
+      );
+
+      const fabricVideo = new fabric.FabricImage(videoEl, {
+        objectCaching: false,
+        width: originalW,
+        height: originalH,
+        scaleX: width / originalW,
+        scaleY: height / originalH,
+        selectable: false,
+      });
+
+      this.canvas.setDimensions({ width, height });
+      this.width = width;
+      this.height = height;
+
+      this.canvas.backgroundImage = fabricVideo;
+      videoEl.play();
+    };
+
+    videoEl.onended = () => videoEl.play();
+
+    const render = () => {
+      this.canvas.renderAll();
+      fabric.util.requestAnimFrame(render);
+    };
+    fabric.util.requestAnimFrame(render);
+  }
+  async renderImage(file: File) {
+    const url = await fileToDataURL(file);
     const bg = await fabric.FabricImage.fromURL(url, {
       crossOrigin: 'anonymous',
     });
@@ -64,25 +120,7 @@ class FabricCanvas {
       .getContext()
       .getImageData(0, 0, width, height).data;
 
-    this.defaultTextColor = this.extractCommonColor(pixels);
-  }
-
-  extractCommonColor(pixels: Uint8ClampedArray) {
-    let totalGray = 0;
-    const pixelCount = pixels.length / 4; // RGBA (4채널이므로 4로 나눔)
-
-    for (let i = 0; i < pixels.length; i += 4) {
-      const r = pixels[i]; // Red
-      const g = pixels[i + 1]; // Green
-      const b = pixels[i + 2]; // Blue
-      const gray = (r + g + b) / 3; // 평균 밝기 계산
-      totalGray += gray;
-    }
-
-    const averageGray = totalGray / pixelCount; // 전체 평균 밝기
-
-    const result = averageGray >= 128 ? '#000000' : '#ffffff';
-    return result;
+    this.defaultTextColor = extractCommonColor(pixels);
   }
 
   hideTooltip() {
