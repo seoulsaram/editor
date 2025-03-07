@@ -23,8 +23,8 @@ type StyleRef = {
 };
 
 type Props = {
-  bgImage: File;
-  onSubmit: (dataUrl: string) => void;
+  background: File;
+  onSubmit: (dataUrl: string | undefined) => void;
 };
 
 export const fonts = [
@@ -47,7 +47,7 @@ const icons = [
   '/target.svg',
 ];
 
-export default function Editor({ bgImage, onSubmit }: Props) {
+export default function Editor({ background, onSubmit }: Props) {
   const containerRef = useRef<HTMLCanvasElement>(null);
   const [canvas, setCanvas] = useState<TextCanvas | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -120,8 +120,8 @@ export default function Editor({ bgImage, onSubmit }: Props) {
       clientHeight > 500 ? 500 : clientHeight,
       menuRef.current
     );
-    if (bgImage) {
-      canvasInstance.addBgImage(bgImage).then(() => {
+    if (background) {
+      canvasInstance.addBgImage(background).then(() => {
         setCanvas(canvasInstance);
         setIsLoading(false);
       });
@@ -133,7 +133,7 @@ export default function Editor({ bgImage, onSubmit }: Props) {
     return () => {
       canvasInstance.getCanvas().dispose();
     };
-  }, [bgImage]);
+  }, [background]);
 
   function addText() {
     canvas?.addText({ content: 'Hello 월드', font: styleRef.current.curr });
@@ -189,9 +189,10 @@ export default function Editor({ bgImage, onSubmit }: Props) {
     canvas.addObject(path);
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (canvas) {
-      onSubmit(canvas.getImageDataUrl());
+      const data = await canvas.getImageDataUrl(background.type);
+      onSubmit(data || undefined);
       setSubmitted(true);
     }
   };

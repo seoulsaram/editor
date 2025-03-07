@@ -2,27 +2,40 @@
 
 import { useEffect, useState } from 'react';
 import Editor from '../components/Editor';
-import { saveBase64Image } from '../utils/image.utils';
+import { extractFirstFrame, saveBase64Image } from '../utils/image.utils';
 import Image from 'next/image';
 
 export default function Home() {
   //image, video
-  const [imgFile, setImgFile] = useState<File | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [bg, setBg] = useState<string>('');
 
-  const handleSubmit = (dataUrl: string) => {
-    setImgFile(null);
-    saveBase64Image(dataUrl);
+  const handleSubmit = (dataUrl: string | undefined) => {
+    setFile(null);
+    console.log('dataUrl', dataUrl);
+    if (dataUrl) {
+      saveBase64Image(dataUrl);
+    }
   };
 
   useEffect(() => {
-    if (imgFile) {
-      const url = URL.createObjectURL(imgFile);
-      setBg(url);
+    if (file) {
+      if (file.type.includes('video')) {
+        extractFirstFrame(file, (imgFile) => {
+          if (!imgFile) return;
+          const url = URL.createObjectURL(imgFile);
+          setBg(url);
 
-      return () => URL.revokeObjectURL(url);
+          return () => URL.revokeObjectURL(url);
+        });
+      } else {
+        const url = URL.createObjectURL(file);
+        setBg(url);
+
+        return () => URL.revokeObjectURL(url);
+      }
     }
-  }, [imgFile]);
+  }, [file]);
 
   return (
     <div className='relative min-h-screen flex flex-col items-center justify-center'>
@@ -48,14 +61,14 @@ export default function Home() {
             onChange={(e) => {
               const file = e?.target?.files?.[0];
               if (file) {
-                setImgFile(file);
+                setFile(file);
               }
             }}
           />
         </label>
 
         <div className='mt-4 flex flex-col gap-4 row-start-2 items-center'>
-          {imgFile && <Editor bgImage={imgFile} onSubmit={handleSubmit} />}
+          {file && <Editor background={file} onSubmit={handleSubmit} />}
         </div>
       </main>
     </div>

@@ -49,3 +49,49 @@ export function saveBase64Image(base64String: string, filename = 'image.png') {
   link.click();
   document.body.removeChild(link);
 }
+
+export function extractFirstFrame(
+  videoFile: File,
+  callback: (imgFile: File | null) => void
+) {
+  const video = document.createElement('video');
+  video.src = URL.createObjectURL(videoFile);
+  video.muted = true;
+  video.autoplay = false;
+  video.playsInline = true; // iOS 지원
+  video.crossOrigin = 'anonymous'; // CORS 방지 (필요할 경우)
+
+  video.addEventListener('loadeddata', () => {
+    video.currentTime = 0; // 첫 번째 프레임으로 이동
+  });
+
+  video.addEventListener('seeked', () => {
+    // ✅ 캔버스 생성
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    if (ctx) ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // ✅ 이미지 파일 생성 (Blob 형태)
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const imgFile = new File([blob], 'first-frame.png', {
+          type: 'image/png',
+        });
+        callback(imgFile);
+      } else {
+        callback(null);
+      }
+    }, 'image/png');
+
+    // 비디오 URL 해제
+    URL.revokeObjectURL(video.src);
+  });
+
+  video.addEventListener('error', () => {
+    console.error('비디오를 로드할 수 없습니다.');
+    callback(null);
+  });
+}

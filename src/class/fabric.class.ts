@@ -49,7 +49,6 @@ class FabricCanvas {
     const videoEl = document.createElement('video');
     videoEl.id = 'video1';
     videoEl.src = URL.createObjectURL(file);
-    document.body.appendChild(videoEl);
 
     videoEl.onloadedmetadata = () => {
       // ✅ 비디오 원본 크기로 설정
@@ -79,6 +78,8 @@ class FabricCanvas {
       this.canvas.setDimensions({ width, height });
       this.width = width;
       this.height = height;
+      this.bgWidth = originalW;
+      this.bgHeight = originalH;
 
       this.canvas.backgroundImage = fabricVideo;
       videoEl.play();
@@ -284,14 +285,48 @@ class FabricCanvas {
     return { width: this.width, height: this.height };
   }
 
-  getImageDataUrl() {
+  // getImageDataUrl() {
+  //   this.canvas.discardActiveObject();
+
+  //   if (this.bgWidth && this.bgHeight && !this.isAdjusted) {
+  //     const wScale = this.bgWidth / this.width;
+  //     const hScale = this.bgHeight / this.height;
+
+  //     // 백그라운드 이미지 크기 조정
+  //     const bgImage = this.canvas.backgroundImage;
+  //     if (bgImage) {
+  //       bgImage.set({
+  //         scaleX: bgImage.scaleX * wScale,
+  //         scaleY: bgImage.scaleY * hScale,
+  //       });
+  //     }
+  //     this.canvas.getObjects().forEach((obj) => {
+  //       obj.set({
+  //         left: obj.left * wScale,
+  //         top: obj.top * hScale,
+  //         scaleX: obj.scaleX * wScale,
+  //         scaleY: obj.scaleY * hScale,
+  //       });
+  //     });
+  //     this.isAdjusted = true;
+  //   }
+  //   this.canvas.renderAll();
+  //   return this.canvas.toDataURL({
+  //     format: 'png',
+  //     multiplier: 1,
+  //     width: this.bgWidth || this.canvas.width,
+  //     height: this.bgHeight || this.canvas.height,
+  //   });
+  // }
+  async getImageDataUrl(format: string): Promise<string | null> {
     this.canvas.discardActiveObject();
+    const duration = 5000;
 
     if (this.bgWidth && this.bgHeight && !this.isAdjusted) {
       const wScale = this.bgWidth / this.width;
       const hScale = this.bgHeight / this.height;
 
-      // 백그라운드 이미지 크기 조정
+      // ✅ 배경 이미지 크기 조정
       const bgImage = this.canvas.backgroundImage;
       if (bgImage) {
         bgImage.set({
@@ -299,6 +334,8 @@ class FabricCanvas {
           scaleY: bgImage.scaleY * hScale,
         });
       }
+
+      // ✅ 모든 객체 크기 조정
       this.canvas.getObjects().forEach((obj) => {
         obj.set({
           left: obj.left * wScale,
@@ -307,15 +344,47 @@ class FabricCanvas {
           scaleY: obj.scaleY * hScale,
         });
       });
+
       this.isAdjusted = true;
     }
+
     this.canvas.renderAll();
-    return this.canvas.toDataURL({
-      format: 'png',
-      multiplier: 1,
-      width: this.bgWidth || this.canvas.width,
-      height: this.bgHeight || this.canvas.height,
-    });
+
+    if (format.includes('image')) {
+      // ✅ PNG 이미지로 저장
+      return this.canvas.toDataURL({
+        format: 'png',
+        multiplier: 1,
+        width: this.bgWidth || this.canvas.width,
+        height: this.bgHeight || this.canvas.height,
+      });
+    } else if (format.includes('video')) {
+      return new Promise((resolve) => {
+        // ✅ 🎥 비디오 녹화 시작
+        const stream = this.canvas.getElement().captureStream(30); // 30 FPS
+        const mediaRecorder = new MediaRecorder(stream, {
+          mimeType: 'video/webm',
+        });
+
+        const chunks: Blob[] = [];
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) chunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(chunks, { type: 'video/webm' });
+          const videoUrl = URL.createObjectURL(blob);
+
+          console.log('video', videoUrl);
+          resolve(videoUrl); // ✅ Promise를 resolve하여 비디오 URL 반환
+        };
+
+        mediaRecorder.start();
+        setTimeout(() => mediaRecorder.stop(), duration); // ⏳ 지정된 시간만큼 녹화
+      });
+    }
+
+    return null; // 다른 경우 null 반환
   }
 
   private cleanCanvas() {
