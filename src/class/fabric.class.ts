@@ -52,7 +52,7 @@ class FabricCanvas {
     videoEl.src = URL.createObjectURL(file);
 
     videoEl.onloadedmetadata = () => {
-      // ✅ 비디오 원본 크기로 설정
+      // 비디오 원본 크기로 설정
       const originalW = videoEl.videoWidth;
       const originalH = videoEl.videoHeight;
       this.videoDuration = videoEl.duration * 1000;
@@ -60,7 +60,7 @@ class FabricCanvas {
       videoEl.width = originalW;
       videoEl.height = originalH;
 
-      // ✅ 크기 조정
+      // 크기 조정
       const { width, height } = resizeImageSize(
         originalW,
         originalH,
@@ -292,7 +292,7 @@ class FabricCanvas {
         const wScale = this.bgWidth / this.width;
         const hScale = this.bgHeight / this.height;
 
-        // ✅ 배경 이미지 크기 조정
+        // 배경 이미지 크기 조정
         const bgImage = this.canvas.backgroundImage;
         if (bgImage) {
           bgImage.set({
@@ -301,7 +301,7 @@ class FabricCanvas {
           });
         }
 
-        // ✅ 모든 객체 크기 조정
+        // 모든 객체 크기 조정
         this.canvas.getObjects().forEach((obj) => {
           obj.set({
             left: obj.left * wScale,
@@ -316,7 +316,7 @@ class FabricCanvas {
 
       this.canvas.renderAll();
 
-      // ✅ PNG 이미지로 저장
+      // PNG 이미지로 저장
       return this.canvas.toDataURL({
         format: 'png',
         multiplier: 1,
@@ -325,7 +325,7 @@ class FabricCanvas {
       });
     } else if (format.includes('video')) {
       return new Promise((resolve) => {
-        // ✅ 🎥 비디오 녹화 시작
+        // 비디오 녹화 시작
         const stream = this.canvas.getElement().captureStream(30); // 30 FPS
         const mediaRecorder = new MediaRecorder(stream, {
           mimeType: 'video/webm',
@@ -339,7 +339,7 @@ class FabricCanvas {
         mediaRecorder.onstop = () => {
           const blob = new Blob(chunks, { type: format });
 
-          // ✅ Blob을 Base64로 변환
+          // Blob을 Base64로 변환
           const reader = new FileReader();
           reader.readAsDataURL(blob);
 
