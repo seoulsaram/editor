@@ -235,14 +235,14 @@ export default function Editor({ background, onSubmit }: Props) {
             style={{ maxWidth: canvas?.getCanvasSize().width }}
           >
             <button
-              className='p-2 w-full bg-blue-500 text-white font-semibold rounded-lg '
+              className='p-2 w-full bg-blue-500 opacity-90 text-white font-semibold rounded-lg '
               onClick={addText}
               disabled={submitted}
             >
               텍스트 추가
             </button>
             <button
-              className='p-2 w-full border-[1px] border-blue-500 text-blue-500 bg-white font-semibold rounded-lg '
+              className='p-2 w-full border-[1px] border-blue-500 opacity-90 text-blue-500 bg-white font-semibold rounded-lg '
               onClick={handleSubmit}
               disabled={submitted}
             >
@@ -256,7 +256,7 @@ export default function Editor({ background, onSubmit }: Props) {
             transform: 'translateY(100%)',
             boxShadow: 'rgba(100, 100, 111, 0.7) 0px 7px 29px 0px',
           }}
-          className='fixed bottom-0 left-0  w-full overflow-hidden rounded-tl-xl border-[1px] border-black/10 rounded-tr-xl bg-white/50 backdrop-blur-2xl divide-y-[1px] divide-black/10'
+          className='fixed max-w-[500px] bottom-0 left-[50%] translate-x-[-50%]  w-full overflow-hidden rounded-tl-xl border-[1px] border-black/10 rounded-tr-xl bg-white/50 backdrop-blur-2xl divide-y-[1px] divide-black/10'
         >
           <button onClick={changeTextAlign} data-type='text' className={btn}>
             정렬 변경
