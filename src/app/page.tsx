@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Editor from '../components/Editor';
-import { extractFirstFrame, saveBase64Image } from '../utils/image.utils';
+import { extractFirstFrame, saveBase64Media } from '../utils/image.utils';
 import Image from 'next/image';
 
 export default function Home() {
@@ -12,9 +12,9 @@ export default function Home() {
 
   const handleSubmit = (dataUrl: string | undefined) => {
     setFile(null);
-    console.log('dataUrl', dataUrl);
+
     if (dataUrl) {
-      saveBase64Image(dataUrl);
+      saveBase64Media(dataUrl);
     }
   };
 

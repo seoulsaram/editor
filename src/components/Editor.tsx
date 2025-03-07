@@ -191,6 +191,10 @@ export default function Editor({ background, onSubmit }: Props) {
 
   const handleSubmit = async () => {
     if (canvas) {
+      setIsLoading(true);
+      if (background.type.includes('video')) {
+        alert('비디오 저장은 시간이 걸립니다. 조금 기다려주세요.');
+      }
       const data = await canvas.getImageDataUrl(background.type);
       onSubmit(data || undefined);
       setSubmitted(true);
