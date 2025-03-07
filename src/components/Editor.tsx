@@ -116,7 +116,7 @@ export default function Editor({ background, onSubmit }: Props) {
 
     const canvasInstance = new TextCanvas(
       'texteditCanvas',
-      clientWidth > 500 ? 500 : clientWidth,
+      clientWidth > 500 ? 500 : clientWidth - 24,
       clientHeight > 500 ? 500 : clientHeight,
       menuRef.current
     );

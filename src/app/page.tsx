@@ -38,11 +38,11 @@ export default function Home() {
   }, [file]);
 
   return (
-    <div className='relative min-h-screen flex flex-col items-center justify-center'>
+    <div className='relative min-h-screen flex flex-col justify-center'>
       {bg && (
         <>
           <Image
-            className='absolute to-0 left-0 w-screen h-screen'
+            className='absolute top-0 left-0 w-screen h-screen'
             src={bg}
             width={500}
             height={500}
@@ -51,8 +51,8 @@ export default function Home() {
           <div className='absolute top-0 left-0 w-screen h-screen bg-white/60 backdrop-blur-3xl'></div>
         </>
       )}
-      <main className='p-8 pb-20 z-40'>
-        <label className='flex flex-col gap-4 cursor-pointer'>
+      <main className='p-8 pb-20 z-40 sm:p-2'>
+        <label className='max-w-[500px] mx-auto flex flex-col gap-4 cursor-pointer'>
           이미지 첨부하기
           <input
             type='file'
