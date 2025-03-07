@@ -210,7 +210,7 @@ export default function Editor({ bgImage, onSubmit }: Props) {
         {icons.map((i) => (
           <button
             key={i}
-            className='p-1 border-[1px] border-black/20 rounded-lg'
+            className='p-1 border-[1px] border-black/20 bg-white/70 rounded-lg'
             onClick={() => addIcon(i)}
           >
             <Image src={i} width={50} height={50} alt='bear' />
@@ -220,7 +220,7 @@ export default function Editor({ bgImage, onSubmit }: Props) {
       <div className='relative flex flex-col gap-[8px]'>
         <canvas
           ref={containerRef}
-          className='rounded-lg border-[1px] border-black-10 overflow-hidden'
+          className='rounded-lg shadow-xl overflow-hidden'
           id='texteditCanvas'
         ></canvas>
 
