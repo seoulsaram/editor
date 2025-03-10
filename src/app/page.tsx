@@ -8,7 +8,7 @@ import Image from 'next/image';
 export default function Home() {
   //image, video
   const [file, setFile] = useState<File | null>(null);
-  const [bg, setBg] = useState<string>('');
+  const [bg, setBg] = useState<string>('/defaultbg.png');
 
   const handleSubmit = (dataUrl: string | undefined) => {
     setFile(null);

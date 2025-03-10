@@ -3,13 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import TextCanvas from '../class/editor.class';
 import Image from 'next/image';
 
-type FontStyle =
-  | 'NotoSansKR'
-  | 'NanumMyeongjo-ExtraBold'
-  | 'NanumMyeongjo-Bold'
-  | 'NanumMyeongjo-Regular'
-  | 'GasoekOne-Regular'
-  | 'EastSeaDokdo-Regular';
+type FontStyle = '42dotSans' | 'DynaPuff' | 'Hahmlet';
 
 type FontDataType = {
   weight: number[];
@@ -28,15 +22,9 @@ type Props = {
 };
 
 export const fonts = [
-  { name: 'NotoSansKR', url: '/fonts/NotoSansKR-VariableFont_wght.ttf' },
-  {
-    name: 'NanumMyeongjo-ExtraBold',
-    url: '/fonts/NanumMyeongjo-ExtraBold.ttf',
-  },
-  { name: 'NanumMyeongjo-Bold', url: '/fonts/NanumMyeongjo-Bold.ttf' },
-  { name: 'NanumMyeongjo-Regular', url: '/fonts/NanumMyeongjo-Regular.ttf' },
-  { name: 'GasoekOne-Regular', url: '/fonts/GasoekOne-Regular.ttf' },
-  { name: 'EastSeaDokdo-Regular', url: '/fonts/EastSeaDokdo-Regular.ttf' },
+  { name: '42dotSans', url: '/fonts/42dotSans.ttf' },
+  { name: 'DynaPuff', url: '/fonts/DynaPuff.ttf' },
+  { name: 'Hahmlet', url: '/fonts/Hahmlet.ttf' },
 ];
 
 const icons = [
@@ -56,32 +44,20 @@ export default function Editor({ background, onSubmit }: Props) {
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const styleRef = useRef<StyleRef>({
-    NotoSansKR: {
-      weight: [900, 200, 300, 400, 500, 600, 700, 800, 100],
+    '42dotSans': {
+      weight: [300, 800],
       idx: 0,
     },
-    'NanumMyeongjo-ExtraBold': {
-      weight: [100],
+    DynaPuff: {
+      weight: [400, 700],
       idx: 0,
     },
-    'NanumMyeongjo-Bold': {
-      weight: [100],
-      idx: 0,
-    },
-    'NanumMyeongjo-Regular': {
-      weight: [100],
-      idx: 0,
-    },
-    'GasoekOne-Regular': {
-      weight: [100],
-      idx: 0,
-    },
-    'EastSeaDokdo-Regular': {
-      weight: [100],
+    Hahmlet: {
+      weight: [300, 900],
       idx: 0,
     },
 
-    curr: 'NotoSansKR',
+    curr: '42dotSans',
   });
 
   const colorRef = useRef<HTMLInputElement | null>(null);
@@ -136,7 +112,7 @@ export default function Editor({ background, onSubmit }: Props) {
   }, [background]);
 
   function addText() {
-    canvas?.addText({ content: 'Hello 월드', font: styleRef.current.curr });
+    canvas?.addText({ content: 'Hello', font: styleRef.current.curr });
   }
 
   function changeFontStyle() {
@@ -258,14 +234,14 @@ export default function Editor({ background, onSubmit }: Props) {
           }}
           className='fixed max-w-[500px] bottom-0 left-[50%] translate-x-[-50%]  w-full overflow-hidden rounded-tl-xl border-[1px] border-black/10 rounded-tr-xl bg-white/50 backdrop-blur-2xl divide-y-[1px] divide-black/10'
         >
-          <button onClick={changeTextAlign} data-type='text' className={btn}>
-            정렬 변경
-          </button>
           <button onClick={changeFontStyle} data-type='text' className={btn}>
             폰트변경
           </button>
           <button onClick={changeFontWeight} data-type='text' className={btn}>
             굵기 변경
+          </button>
+          <button onClick={changeTextAlign} data-type='text' className={btn}>
+            정렬 변경
           </button>
           <button
             onClick={handleColorChangeBtnClick}

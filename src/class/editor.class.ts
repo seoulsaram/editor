@@ -2,7 +2,7 @@ import * as fabric from 'fabric';
 import FabricCanvas from './fabric.class';
 
 class TextCanvas extends FabricCanvas {
-  public addText({ content, font }: { content?: string; font?: string }) {
+  public addText({ content, font }: { content?: string; font: string }) {
     const shadow = new fabric.Shadow({
       color: 'rgba(10,10,10,0.5)',
       blur: 3,
@@ -14,7 +14,7 @@ class TextCanvas extends FabricCanvas {
       left: 100,
       top: 100,
       editable: true,
-      fontFamily: font || 'SB Font',
+      fontFamily: font,
       fontWeight: '300',
       lockScalingFlip: true,
       lockSkewingX: true,
@@ -147,6 +147,7 @@ class TextCanvas extends FabricCanvas {
   changeFontWeight(weight: number) {
     if (!this.activeObject || this.activeObject.type !== 'i-text') return;
     const activeText = this.activeObject as fabric.IText;
+    console.log('weight', weight);
     activeText.set('fontWeight', weight);
     this.canvas.requestRenderAll();
   }
