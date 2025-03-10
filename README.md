@@ -1,4 +1,5 @@
 ## 소개
+![Uploading 스크린샷 2025-03-10 오후 4.09.00.png…]()
 
 재미삼아 `fabric.js`를 사용해 인스타그램 스토리에서 처럼 간단하게 동영상/사진 위에 스티커나 텍스트를 올릴 수 있는 캔버스를 만들어보았습니다.
 
@@ -10,7 +11,7 @@
 src
     ㄴapp
     ㄴclass
-        ㄴeditor.class.ts   #텍스트, 이모지 등을 관리하는 class. 아래의 fabric class를 상속받음
+        ㄴeditor.class.ts   #텍스트, 이모지 편집을 관리하는 class. 아래의 fabric class를 상속받음
         ㄴfabric.class.ts   #캔버스의 기본 동작을 관리하는 class.
     ㄴcomponents
         ㄴEditor.tsx        #editor.class의 인스턴스를 생성해 실제 사용하는 컴포넌트
