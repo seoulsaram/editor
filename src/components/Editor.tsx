@@ -103,11 +103,10 @@ export default function Editor({ background, onSubmit }: Props) {
 
   /* init canvas */
   useEffect(() => {
+    setIsLoading(true);
     if (typeof window === 'undefined' && containerRef.current === null) return;
     const clientWidth = window.innerWidth - 20;
     const clientHeight = window.innerHeight - 200;
-
-    setIsLoading(true);
 
     const canvasInstance = new TextCanvas(
       'texteditCanvas',
@@ -118,11 +117,11 @@ export default function Editor({ background, onSubmit }: Props) {
     if (background) {
       canvasInstance.addBgImage(background).then(() => {
         setCanvas(canvasInstance);
-        setIsLoading(false);
+
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 500);
       });
-    } else {
-      setCanvas(canvasInstance);
-      setIsLoading(false);
     }
 
     return () => {
@@ -271,7 +270,7 @@ export default function Editor({ background, onSubmit }: Props) {
           }}
           className='fixed max-w-[500px] bottom-0 left-[50%] translate-x-[-50%] w-full overflow-hidden rounded-tl-xl border-[1px] border-black/10 rounded-tr-xl bg-white/50 backdrop-blur-2xl divide-y-[1px] divide-black/10'
         >
-          <div className='p-3'>
+          <div className='p-3 flex justify-center' data-type='text'>
             <button
               title='폰트변경'
               className='px-4'
@@ -339,7 +338,7 @@ export default function Editor({ background, onSubmit }: Props) {
             </button>
           </div>
           {showTextBgPicker && (
-            <div className='p-3'>
+            <div className='p-3 flex justify-center' data-type='text'>
               <button
                 className='mx-1 w-8 h-8 rounded-lg shadow-sm'
                 onClick={removeTextBg}

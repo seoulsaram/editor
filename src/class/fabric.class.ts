@@ -148,10 +148,12 @@ class FabricCanvas {
     elements.forEach((el) => {
       const btn = el as HTMLButtonElement;
       const btnType = btn.dataset.type;
+
       if (obj.type === 'image' && btnType === 'text') {
+        console.log('here');
         btn.style.display = 'none';
       } else {
-        btn.style.display = 'block';
+        btn.style.display = 'flex';
       }
     });
   }
