@@ -200,32 +200,35 @@ export default function Editor({ background, onSubmit }: Props) {
           </button>
         ))}
       </div>
-      <div className='relative flex flex-col gap-[8px]'>
+      <div className='relative flex flex-col gap-4'>
         <canvas
           ref={containerRef}
           className='rounded-lg shadow-xl overflow-hidden'
           id='texteditCanvas'
         ></canvas>
 
-        <div className='sticky w-full bottom-5 left-0 flex justify-center'>
+        <div className='w-full flex justify-center'>
           <div
             className='w-full flex gap-2'
             style={{ maxWidth: canvas?.getCanvasSize().width }}
           >
             <button
-              className='p-2 w-full bg-blue-500 opacity-90 text-white font-semibold rounded-lg '
+              className='p-2 w-full bg-linear-to-bl from-violet-500 to-fuchsia-500 opacity-90 text-white font-semibold rounded-lg '
               onClick={addText}
               disabled={submitted}
             >
               텍스트 추가
             </button>
-            <button
-              className='p-2 w-full border-[1px] border-blue-500 opacity-90 text-blue-500 bg-white font-semibold rounded-lg '
-              onClick={handleSubmit}
-              disabled={submitted}
-            >
-              저장
-            </button>
+            <div className='relative w-full'>
+              <div className='w-full h-full bg-white rounded-lg'></div>
+              <button
+                className='absolute left-0 top-0 p-2 w-full bg-linear-to-bl from-violet-500 to-fuchsia-500 text-transparent bg-clip-text border-[1px] border-violet-500 opacity-90  bg-white font-semibold rounded-lg '
+                onClick={handleSubmit}
+                disabled={submitted}
+              >
+                저장
+              </button>
+            </div>
           </div>
         </div>
         <div
