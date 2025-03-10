@@ -1,5 +1,4 @@
 ## 소개
-![Uploading 스크린샷 2025-03-10 오후 4.09.00.png…]()
 
 ![screenshot](/public/screenshot.png)
 
