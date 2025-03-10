@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from 'react';
 import TextCanvas from '../class/editor.class';
 import Image from 'next/image';
+import 'react-color-palette/css';
+import { ColorPicker, useColor, type IColor } from 'react-color-palette';
 
 type FontStyle = '42dotSans' | 'DynaPuff' | 'Hahmlet';
 
@@ -37,11 +39,25 @@ const icons = [
   '/iconWoman.png',
 ];
 
+const bgList = [
+  '#000000',
+  '#ffffff',
+  '#ffd000',
+  '#ad5913',
+  '#ff5e5e',
+  '#38cc35',
+  '#00a2ff',
+  '#84369e',
+  '#fc9f9f',
+];
+
 export default function Editor({ background, onSubmit }: Props) {
   const containerRef = useRef<HTMLCanvasElement>(null);
   const [canvas, setCanvas] = useState<TextCanvas | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  const [color, setColor] = useColor('#123123');
 
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -62,7 +78,8 @@ export default function Editor({ background, onSubmit }: Props) {
     curr: '42dotSans',
   });
 
-  const colorRef = useRef<HTMLInputElement | null>(null);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showTextBgPicker, setShowTextBgPicker] = useState(false);
 
   /* load fonts */
   useEffect(() => {
@@ -142,10 +159,10 @@ export default function Editor({ background, onSubmit }: Props) {
     canvas.changeFontWeight(fontWeights[nextIdx]);
   }
 
-  function changeFontColor(e: React.ChangeEvent<HTMLInputElement>) {
+  function changeFontColor(color: IColor) {
     if (!canvas) return;
-    canvas.changeFontColor(e.target.value);
-    colorRef.current?.blur();
+    canvas.changeFontColor(color.hex);
+    setShowColorPicker(false);
   }
 
   function changeTextAlign() {
@@ -158,8 +175,22 @@ export default function Editor({ background, onSubmit }: Props) {
     canvas.deleteObject();
   }
 
+  function openTextBgSelection() {
+    setShowTextBgPicker(!showTextBgPicker);
+  }
+
+  function addTextBg(color: string) {
+    if (!canvas) return;
+    canvas.addTextBg(color);
+  }
+
+  function removeTextBg() {
+    if (!canvas) return;
+    canvas.removeTextBg();
+  }
+
   function handleColorChangeBtnClick() {
-    colorRef.current?.click();
+    setShowColorPicker((prev) => !prev);
   }
 
   function addIcon(path: string) {
@@ -180,7 +211,8 @@ export default function Editor({ background, onSubmit }: Props) {
   };
 
   const btn =
-    'w-full p-3 text-blue-500 font-[700] flex items-center justify-center';
+    'w-full text-blue-500 font-[700] flex items-center justify-center';
+
   return (
     <>
       {isLoading && (
@@ -237,34 +269,114 @@ export default function Editor({ background, onSubmit }: Props) {
             transform: 'translateY(100%)',
             boxShadow: 'rgba(100, 100, 111, 0.7) 0px 7px 29px 0px',
           }}
-          className='fixed max-w-[500px] bottom-0 left-[50%] translate-x-[-50%]  w-full overflow-hidden rounded-tl-xl border-[1px] border-black/10 rounded-tr-xl bg-white/50 backdrop-blur-2xl divide-y-[1px] divide-black/10'
+          className='fixed max-w-[500px] bottom-0 left-[50%] translate-x-[-50%] w-full overflow-hidden rounded-tl-xl border-[1px] border-black/10 rounded-tr-xl bg-white/50 backdrop-blur-2xl divide-y-[1px] divide-black/10'
         >
-          <button onClick={changeFontStyle} data-type='text' className={btn}>
-            폰트변경
-          </button>
-          <button onClick={changeFontWeight} data-type='text' className={btn}>
-            굵기 변경
-          </button>
-          <button onClick={changeTextAlign} data-type='text' className={btn}>
-            정렬 변경
-          </button>
-          <button
-            onClick={handleColorChangeBtnClick}
-            data-type='text'
-            className={btn}
-          >
-            색상 변경
-            <input
-              ref={colorRef}
-              onChange={changeFontColor}
-              type='color'
-              className='cursor-pointer absolute top-2 left-3 opacity-0'
-            />
-          </button>
-          <button onClick={deleteText} className={`${btn} text-red-600`}>
+          <div className='p-3'>
+            <button
+              title='폰트변경'
+              className='px-4'
+              onClick={changeFontStyle}
+              data-type='text'
+            >
+              <Image
+                src='/iconFont.svg'
+                width={24}
+                height={24}
+                alt='폰트변경'
+              />
+            </button>
+            <button
+              title='굵기 변경'
+              className='px-4'
+              onClick={changeFontWeight}
+              data-type='text'
+            >
+              <Image
+                src='/iconBold.svg'
+                width={24}
+                height={24}
+                alt='굵기 변경'
+              />
+            </button>
+            <button
+              title='정렬 변경'
+              className='px-4'
+              onClick={changeTextAlign}
+              data-type='text'
+            >
+              <Image
+                src='/iconAlign.svg'
+                width={24}
+                height={24}
+                alt='정렬 변경'
+              />
+            </button>
+            <button
+              title='색상 변경'
+              className='px-4'
+              onClick={handleColorChangeBtnClick}
+              data-type='text'
+            >
+              <Image
+                src='/iconColor.svg'
+                width={24}
+                height={24}
+                alt='색상 변경'
+              />
+            </button>
+            <button
+              title='텍스트 배경색'
+              className='px-4'
+              onClick={openTextBgSelection}
+              data-type='text'
+            >
+              <Image
+                src='/iconTextBg.svg'
+                width={24}
+                height={24}
+                alt='텍스트 배경색'
+              />
+            </button>
+          </div>
+          {showTextBgPicker && (
+            <div className='p-3'>
+              <button
+                className='mx-1 w-8 h-8 rounded-lg shadow-sm'
+                onClick={removeTextBg}
+              >
+                <Image
+                  src='/iconTransparent.png'
+                  width={32}
+                  height={32}
+                  alt='투명'
+                />
+              </button>
+              {bgList.map((bg) => (
+                <button
+                  key={bg}
+                  className='mx-1 w-8 h-8 rounded-lg shadow-sm'
+                  style={{ backgroundColor: bg }}
+                  onClick={() => addTextBg(bg)}
+                ></button>
+              ))}
+            </div>
+          )}
+          <button onClick={deleteText} className={`${btn} p-3 text-red-600`}>
             삭제
           </button>
         </div>
+        {showColorPicker && (
+          <div className='max-w-[500px] fixed bottom-0 left-[50%] translate-x-[-50%] w-full p-2'>
+            <ColorPicker
+              hideInput={['rgb', 'hsv']}
+              color={color}
+              height={100}
+              onChange={setColor}
+              onChangeComplete={changeFontColor}
+              hideAlpha
+            />
+          </div>
+        )}
       </div>
     </>
   );

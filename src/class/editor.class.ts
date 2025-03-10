@@ -1,5 +1,6 @@
 import * as fabric from 'fabric';
 import FabricCanvas from './fabric.class';
+import { hexToRgba } from '../utils/color.utils';
 
 class TextCanvas extends FabricCanvas {
   public addText({ content, font }: { content?: string; font: string }) {
@@ -168,6 +169,18 @@ class TextCanvas extends FabricCanvas {
     if (!this.activeObject || this.activeObject.type !== 'i-text') return;
     const activeText = this.activeObject as fabric.IText;
     activeText.set('fill', color);
+    this.canvas.requestRenderAll();
+  }
+  addTextBg(color: string) {
+    if (!this.activeObject || this.activeObject.type !== 'i-text') return;
+    const activeText = this.activeObject as fabric.IText;
+    activeText.set('backgroundColor', hexToRgba(color, 0.5));
+    this.canvas.requestRenderAll();
+  }
+  removeTextBg() {
+    if (!this.activeObject || this.activeObject.type !== 'i-text') return;
+    const activeText = this.activeObject as fabric.IText;
+    activeText.set('backgroundColor', 'rgba(0,0,0,0)');
     this.canvas.requestRenderAll();
   }
 
