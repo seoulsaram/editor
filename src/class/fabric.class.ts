@@ -85,6 +85,7 @@ class FabricCanvas {
     };
 
     videoEl.onended = () => videoEl.play();
+    videoEl.onerror = () => alert('비디오 로딩에 실패했습니다.');
 
     const render = () => {
       this.canvas.renderAll();
@@ -92,11 +93,17 @@ class FabricCanvas {
     };
     fabric.util.requestAnimFrame(render);
   }
+
   async renderImage(file: File) {
     const url = await fileToDataURL(file);
     const bg = await fabric.FabricImage.fromURL(url, {
       crossOrigin: 'anonymous',
     });
+
+    if (!bg) {
+      alert('이미지 로딩에 실패했습니다.');
+      return;
+    }
 
     const { width, height } = resizeImageSize(
       bg.width,

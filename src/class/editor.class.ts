@@ -147,7 +147,6 @@ class TextCanvas extends FabricCanvas {
   changeFontWeight(weight: number) {
     if (!this.activeObject || this.activeObject.type !== 'i-text') return;
     const activeText = this.activeObject as fabric.IText;
-    console.log('weight', weight);
     activeText.set('fontWeight', weight);
     this.canvas.requestRenderAll();
   }
@@ -184,6 +183,7 @@ class TextCanvas extends FabricCanvas {
     return JSON.stringify(obj);
   }
 
+  /* 텍스트 수정 기능용 */
   loadTextData(data: fabric.IText[]) {
     if (data.length) {
       try {
