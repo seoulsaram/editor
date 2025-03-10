@@ -57,7 +57,7 @@ export default function Home() {
           <input
             type='file'
             accept='image/*, video/*'
-            className='p-3 rounded-lg border-[1px] border-black/20'
+            className='p-3 rounded-lg bg-white/80 border-[1px] border-black/20'
             onChange={(e) => {
               const file = e?.target?.files?.[0];
               if (file) {

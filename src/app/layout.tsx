@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Colorful Editor',
+  title: '커버 만들기 : 동영상, 사진을 꾸며봐요',
   description: '심심해서 만들어본 fabricjs 에디터',
 };
 
