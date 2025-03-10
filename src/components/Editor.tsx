@@ -28,11 +28,13 @@ export const fonts = [
 ];
 
 const icons = [
-  '/bear.svg',
-  '/star.svg',
-  '/cat.svg',
-  '/rainbow.svg',
-  '/target.svg',
+  '/iconCD.png',
+  '/iconFace1.png',
+  '/iconFace2.png',
+  '/iconHeart.png',
+  '/iconNail.png',
+  '/iconUnicorn.png',
+  '/iconWoman.png',
 ];
 
 export default function Editor({ background, onSubmit }: Props) {
@@ -191,10 +193,10 @@ export default function Editor({ background, onSubmit }: Props) {
         {icons.map((i) => (
           <button
             key={i}
-            className='p-1 border-[1px] border-black/20 bg-white/70 rounded-lg'
+            className='p-1 shadow-sm border-black/20 bg-white/70 rounded-lg'
             onClick={() => addIcon(i)}
           >
-            <Image src={i} width={50} height={50} alt='bear' />
+            <Image src={i} width={50} height={50} alt={i} />
           </button>
         ))}
       </div>
