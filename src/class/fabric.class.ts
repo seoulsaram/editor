@@ -17,6 +17,7 @@ class FabricCanvas {
   public menuRef: HTMLDivElement | null;
   protected defaultTextColor: string = '#ffffff';
   protected videoDuration?: number = 3000;
+  private guidelines?: fabric.Line[];
 
   constructor(
     containerId: string,
@@ -166,6 +167,15 @@ class FabricCanvas {
     const showTooltip = this.showTooltip.bind(this);
     const hideTooltip = this.hideTooltip.bind(this);
     const setActiveObj = this.setActiveObject.bind(this);
+    const handleObjectMoving = this.handleObjectMoving.bind(this);
+
+    this.canvas.on('object:moving', function (opt) {
+      const target = opt.target;
+      handleObjectMoving(target);
+    });
+    this.canvas.on('object:modified', () => {
+      this.clearGuidelines(this.canvas);
+    });
 
     this.canvas.on('object:added', function (opt) {
       const target = opt.target;
@@ -278,6 +288,186 @@ class FabricCanvas {
     this.activeObject = obj;
   }
 
+  handleObjectMoving(target: fabric.Object) {
+    const canvasWidth = this.width;
+    const canvasHeight = this.height;
+
+    if (!target) return;
+    const obj = target;
+
+    const snappingDistance = 10;
+
+    const left = obj.left || 0;
+    const top = obj.top || 0;
+    const right = left + obj.width! * obj.scaleX!;
+    const bottom = top + obj.height! * obj.scaleY!;
+
+    const centerX = left + (obj.width * obj.scaleX) / 2;
+    const centerY = top + (obj.height * obj.scaleY) / 2;
+
+    const newGuidelines = [];
+    this.clearGuidelines(this.canvas);
+
+    let snapped = false;
+
+    if (Math.abs(left) < snappingDistance) {
+      obj.set({ left: 0 });
+      if (!this.guidelineExists({ canvas: this.canvas, id: 'vertical-left' })) {
+        const line = this.createVerticalGuideline({
+          canvas: this.canvas,
+          x: 0,
+          id: 'vertical-left',
+        });
+        newGuidelines.push(line);
+        this.canvas.add(line);
+      }
+      snapped = true;
+    }
+
+    if (Math.abs(top) < snappingDistance) {
+      obj.set({ top: 0 });
+      if (
+        !this.guidelineExists({ canvas: this.canvas, id: 'horizontal-top' })
+      ) {
+        const line = this.createHorizontalGuideline({
+          canvas: this.canvas,
+          y: 0,
+          id: 'horizontal-top',
+        });
+        newGuidelines.push(line);
+        this.canvas.add(line);
+      }
+      snapped = true;
+    }
+
+    if (Math.abs(right - canvasWidth) < snappingDistance) {
+      obj.set({ left: canvasWidth - obj.width * obj.scaleX });
+      if (
+        !this.guidelineExists({ canvas: this.canvas, id: 'vertical-right' })
+      ) {
+        const line = this.createVerticalGuideline({
+          canvas: this.canvas,
+          x: canvasWidth,
+          id: 'vertical-right',
+        });
+        newGuidelines.push(line);
+        this.canvas.add(line);
+      }
+      snapped = true;
+    }
+
+    if (Math.abs(bottom - canvasHeight) < snappingDistance) {
+      obj.set({ top: canvasHeight - obj.height * obj.scaleY });
+      if (
+        !this.guidelineExists({ canvas: this.canvas, id: 'horizontal-bottom' })
+      ) {
+        const line = this.createHorizontalGuideline({
+          canvas: this.canvas,
+          y: canvasHeight,
+          id: 'horizontal-bottom',
+        });
+        newGuidelines.push(line);
+        this.canvas.add(line);
+      }
+      snapped = true;
+    }
+
+    if (Math.abs(centerX - canvasWidth / 2) < snappingDistance) {
+      obj.set({ left: canvasWidth / 2 - (obj.width * obj.scaleX) / 2 });
+      if (
+        !this.guidelineExists({ canvas: this.canvas, id: 'vertical-center' })
+      ) {
+        const line = this.createVerticalGuideline({
+          canvas: this.canvas,
+          x: canvasWidth / 2,
+          id: 'vertical-center',
+        });
+        newGuidelines.push(line);
+        this.canvas.add(line);
+      }
+      snapped = true;
+    }
+
+    if (Math.abs(centerY - canvasHeight / 2) < snappingDistance) {
+      obj.set({ top: canvasHeight / 2 - (obj.height * obj.scaleY) / 2 });
+      if (
+        !this.guidelineExists({ canvas: this.canvas, id: 'horizontal-center' })
+      ) {
+        const line = this.createHorizontalGuideline({
+          canvas: this.canvas,
+          y: canvasHeight / 2,
+          id: 'horizontal-center',
+        });
+        newGuidelines.push(line);
+        this.canvas.add(line);
+      }
+      snapped = true;
+    }
+
+    if (!snapped) {
+      this.clearGuidelines(this.canvas);
+    } else {
+      this.guidelines = newGuidelines;
+    }
+
+    this.canvas.renderAll();
+  }
+
+  createVerticalGuideline({
+    canvas,
+    x,
+    id,
+  }: {
+    canvas: fabric.Canvas;
+    x: number;
+    id: string;
+  }) {
+    return new fabric.Line([x, 0, x, canvas.height], this.guideLineOpt(id));
+  }
+
+  createHorizontalGuideline({
+    canvas,
+    y,
+    id,
+  }: {
+    canvas: fabric.Canvas;
+    y: number;
+    id: string;
+  }) {
+    return new fabric.Line([0, y, canvas.width, y], this.guideLineOpt(id));
+  }
+
+  guideLineOpt(id: string) {
+    return {
+      id,
+      stroke: 'red',
+      strokeWidth: 1,
+      selectable: false,
+      evented: false,
+      // strokeDashArray: [5, 5],
+      opacity: 0.8,
+    };
+  }
+
+  clearGuidelines(canvas: fabric.Canvas) {
+    const objects = canvas.getObjects('line') as fabric.Object[];
+    objects.forEach((obj) => {
+      const id = obj.get('id');
+      if ((id && id.startsWith('vertical-')) || id.startsWith('horizontal-')) {
+        canvas.remove(obj);
+      }
+    });
+    canvas.renderAll();
+  }
+
+  guidelineExists({ canvas, id }: { canvas: fabric.Canvas; id: string }) {
+    const objects = canvas.getObjects('line');
+    return objects.some((obj) => {
+      const objId = obj.get('id');
+      return objId === id;
+    });
+  }
+
   deleteObject() {
     if (!this.activeObject) return;
     this.canvas.remove(this.activeObject);
@@ -368,7 +558,6 @@ class FabricCanvas {
 
   private cleanCanvas() {
     this.hideTooltip();
-    // this.menuRef = null;
     this.bgWidth = undefined;
     this.bgHeight = undefined;
     this.controlImage = undefined;
