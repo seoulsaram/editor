@@ -201,7 +201,15 @@ class FabricCanvas {
 
   private notifyObjectChange() {
     const objects = this.canvas.getObjects();
-    this.onObjectChangeCallbacks.forEach((cb) => cb(objects));
+
+    this.onObjectChangeCallbacks.forEach((cb) =>
+      cb(
+        objects.filter((i) => {
+          const id = i.get('id');
+          return !id.startsWith('vertical-') && !id.startsWith('horizontal-');
+        })
+      )
+    );
   }
 
   private addEvents() {
