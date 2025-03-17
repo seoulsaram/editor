@@ -5,6 +5,28 @@ import { extractCommonColor } from '../utils/color.utils';
 const MAX_SCALE = 10;
 
 type ObjEvents = keyof fabric.ObjectEvents;
+
+type LayerType = {
+  id: string;
+  zIndex: number | undefined;
+  type: string;
+};
+
+type ObjectChangeCallback = (objects: fabric.Object[]) => void;
+
+fabric.Canvas.prototype.updateZIndexes = function () {
+  const objects = this.getObjects();
+  objects.forEach((obj, index) => {
+    addIdTObject(obj);
+    obj.zIndex = index;
+  });
+};
+function addIdTObject(object: fabric.Object) {
+  if (!object.get('id')) {
+    const timestamp = new Date().getTime();
+    object.set('id', `${object.type}_${timestamp}`);
+  }
+}
 class FabricCanvas {
   protected canvas!: fabric.Canvas;
   protected width: number;
@@ -13,11 +35,20 @@ class FabricCanvas {
   protected bgWidth?: number;
   protected bgHeight?: number;
   protected isAdjusted?: boolean;
+
   protected controlImage?: HTMLImageElement;
+
   public menuRef: HTMLDivElement | null;
+
   protected defaultTextColor: string = '#ffffff';
+
   protected videoDuration?: number = 3000;
+
   private guidelines?: fabric.Line[];
+  private layers: Array<LayerType> = [];
+  public selectedLayer?: LayerType;
+
+  private onObjectChangeCallbacks: ObjectChangeCallback[] = [];
 
   constructor(
     containerId: string,
@@ -151,12 +182,26 @@ class FabricCanvas {
       const btnType = btn.dataset.type;
 
       if (obj.type === 'image' && btnType === 'text') {
-        console.log('here');
         btn.style.display = 'none';
       } else {
         btn.style.display = 'flex';
       }
     });
+  }
+
+  addObjectChangeListener(callback: ObjectChangeCallback) {
+    this.onObjectChangeCallbacks.push(callback);
+  }
+
+  removeObjectChangeListener(callback: ObjectChangeCallback) {
+    this.onObjectChangeCallbacks = this.onObjectChangeCallbacks.filter(
+      (cb) => cb !== callback
+    );
+  }
+
+  private notifyObjectChange() {
+    const objects = this.canvas.getObjects();
+    this.onObjectChangeCallbacks.forEach((cb) => cb(objects));
   }
 
   private addEvents() {
@@ -167,7 +212,27 @@ class FabricCanvas {
     const showTooltip = this.showTooltip.bind(this);
     const hideTooltip = this.hideTooltip.bind(this);
     const setActiveObj = this.setActiveObject.bind(this);
+    const updateLayers = this.updateLayers.bind(this);
     const handleObjectMoving = this.handleObjectMoving.bind(this);
+    const handleObjectSelected = this.handleObjectSelected.bind(this);
+    const notifyObjectChange = this.notifyObjectChange.bind(this);
+
+    this.canvas.on('object:added', () => {
+      this.updateLayers();
+      notifyObjectChange();
+    });
+    this.canvas.on('object:removed', function () {
+      updateLayers();
+      notifyObjectChange();
+    });
+
+    this.canvas.on('selection:created', function (opt) {
+      handleObjectSelected(opt.selected);
+    });
+    this.canvas.on('selection:updated', function (opt) {
+      handleObjectSelected(opt.selected);
+    });
+    this.canvas.on('selection:cleared', () => (this.selectedLayer = undefined));
 
     this.canvas.on('object:moving', function (opt) {
       const target = opt.target;
@@ -175,6 +240,8 @@ class FabricCanvas {
     });
     this.canvas.on('object:modified', () => {
       this.clearGuidelines(this.canvas);
+      updateLayers();
+      this.notifyObjectChange();
     });
 
     this.canvas.on('object:added', function (opt) {
@@ -481,6 +548,44 @@ class FabricCanvas {
 
   getCanvasSize() {
     return { width: this.width, height: this.height };
+  }
+
+  getLayers() {
+    return this.layers;
+  }
+
+  updateLayers() {
+    if (this.canvas) {
+      this.canvas.updateZIndexes();
+      const objects = this.canvas
+        .getObjects()
+        .filter(
+          (obj) =>
+            !obj.get('id').startsWith('vertical-') ||
+            obj.get('id').startsWith('horizontal-')
+        )
+        .map((obj) => ({
+          id: obj.get('id'),
+          zIndex: obj?.zIndex,
+          type: obj.type,
+        }));
+      this.layers = [...objects].reverse();
+    }
+  }
+
+  handleObjectSelected(
+    e: fabric.FabricObject<
+      Partial<fabric.FabricObjectProps>,
+      fabric.SerializedObjectProps,
+      fabric.ObjectEvents
+    >[]
+  ) {
+    const selectedObject = e ? e[0] : null;
+    if (selectedObject) {
+      this.selectedLayer = selectedObject.get('id');
+    } else {
+      this.selectedLayer = undefined;
+    }
   }
 
   async getImageDataUrl(format: string): Promise<string | null> {

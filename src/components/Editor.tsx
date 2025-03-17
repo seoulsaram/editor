@@ -2,8 +2,10 @@
 import { useEffect, useRef, useState } from 'react';
 import TextCanvas from '../class/editor.class';
 import Image from 'next/image';
+import * as fabric from 'fabric';
 import 'react-color-palette/css';
 import { ColorPicker, useColor, type IColor } from 'react-color-palette';
+import LayerControl from './LayerControl';
 
 type FontStyle = '42dotSans' | 'DynaPuff' | 'Hahmlet';
 
@@ -114,10 +116,11 @@ export default function Editor({ background, onSubmit }: Props) {
       clientHeight > 500 ? 500 : clientHeight - 50,
       menuRef.current
     );
+
     if (background) {
       canvasInstance.addBgImage(background).then(() => {
         setCanvas(canvasInstance);
-
+        canvasInstance.addObjectChangeListener(handleObjectChange);
         setTimeout(() => {
           setIsLoading(false);
         }, 500);
@@ -128,6 +131,16 @@ export default function Editor({ background, onSubmit }: Props) {
       canvasInstance.getCanvas().dispose();
     };
   }, [background]);
+
+  const handleObjectChange = (objects: fabric.Object[]) => {
+    console.log('objec', objects);
+    // const layers = objects.map((obj) => ({
+    //   id: obj.get('id'),
+    //   type: obj.type,
+    //   zIndex: obj.zIndex,
+    // }));
+    // setLayers(layers);
+  };
 
   function addText() {
     canvas?.addText({ content: 'Hello', font: styleRef.current.curr });
@@ -219,163 +232,173 @@ export default function Editor({ background, onSubmit }: Props) {
           <div className='text-[100px] animate-spin'>💿</div>
         </div>
       )}
-      {/* icons */}
-      <div className='flex gap-1'>
-        {icons.map((i) => (
-          <button
-            key={i}
-            className='p-1 shadow-sm border-black/20 bg-white/70 rounded-lg'
-            onClick={() => addIcon(i)}
-          >
-            <Image src={i} width={50} height={50} alt={i} />
-          </button>
-        ))}
-      </div>
-      <div className='relative flex flex-col gap-4'>
-        <canvas
-          ref={containerRef}
-          className='rounded-lg shadow-xl overflow-hidden'
-          id='texteditCanvas'
-        ></canvas>
+      <div className='flex'>
+        <div>
+          {/* icons */}
+          <div className='flex gap-1'>
+            {icons.map((i) => (
+              <button
+                key={i}
+                className='p-1 shadow-sm border-black/20 bg-white/70 rounded-lg'
+                onClick={() => addIcon(i)}
+              >
+                <Image src={i} width={50} height={50} alt={i} />
+              </button>
+            ))}
+          </div>
+          <div className='relative flex flex-col gap-4'>
+            <canvas
+              ref={containerRef}
+              className='rounded-lg shadow-xl overflow-hidden'
+              id='texteditCanvas'
+            ></canvas>
 
-        <div className='w-full flex justify-center'>
-          <div
-            className='w-full flex gap-2'
-            style={{ maxWidth: canvas?.getCanvasSize().width }}
-          >
-            <button
-              className='p-2 w-full bg-linear-to-bl from-violet-500 to-fuchsia-500 opacity-90 text-white font-semibold rounded-lg '
-              onClick={addText}
-              disabled={submitted}
-            >
-              텍스트 추가
-            </button>
-            <div className='relative w-full'>
-              <div className='w-full h-full bg-white rounded-lg'></div>
-              <button
-                className='absolute left-0 top-0 p-2 w-full bg-linear-to-bl from-violet-500 to-fuchsia-500 text-transparent bg-clip-text border-[1px] border-violet-500 opacity-90  bg-white font-semibold rounded-lg '
-                onClick={handleSubmit}
-                disabled={submitted}
+            <div className='w-full flex justify-center'>
+              <div
+                className='w-full flex gap-2'
+                style={{ maxWidth: canvas?.getCanvasSize().width }}
               >
-                저장
-              </button>
-            </div>
-          </div>
-        </div>
-        <div
-          ref={menuRef}
-          style={{
-            transform: 'translateY(100%)',
-            boxShadow: 'rgba(100, 100, 111, 0.7) 0px 7px 29px 0px',
-          }}
-          className='fixed max-w-[500px] bottom-0 left-[50%] translate-x-[-50%] w-full overflow-hidden rounded-tl-xl border-[1px] border-black/10 rounded-tr-xl bg-white/50 backdrop-blur-2xl divide-y-[1px] divide-black/10'
-        >
-          <div className='p-3 flex justify-center' data-type='text'>
-            <button
-              title='폰트변경'
-              className='px-4'
-              onClick={changeFontStyle}
-              data-type='text'
-            >
-              <Image
-                src='/iconFont.svg'
-                width={24}
-                height={24}
-                alt='폰트변경'
-              />
-            </button>
-            <button
-              title='굵기 변경'
-              className='px-4'
-              onClick={changeFontWeight}
-              data-type='text'
-            >
-              <Image
-                src='/iconBold.svg'
-                width={24}
-                height={24}
-                alt='굵기 변경'
-              />
-            </button>
-            <button
-              title='정렬 변경'
-              className='px-4'
-              onClick={changeTextAlign}
-              data-type='text'
-            >
-              <Image
-                src='/iconAlign.svg'
-                width={24}
-                height={24}
-                alt='정렬 변경'
-              />
-            </button>
-            <button
-              title='색상 변경'
-              className='px-4'
-              onClick={handleColorChangeBtnClick}
-              data-type='text'
-            >
-              <Image
-                src='/iconColor.svg'
-                width={24}
-                height={24}
-                alt='색상 변경'
-              />
-            </button>
-            <button
-              title='텍스트 배경색'
-              className='px-4'
-              onClick={openTextBgSelection}
-              data-type='text'
-            >
-              <Image
-                src='/iconTextBg.svg'
-                width={24}
-                height={24}
-                alt='텍스트 배경색'
-              />
-            </button>
-          </div>
-          {showTextBgPicker && (
-            <div className='p-3 flex justify-center' data-type='text'>
-              <button
-                className='mx-1 w-8 h-8 rounded-lg shadow-sm'
-                onClick={removeTextBg}
-              >
-                <Image
-                  src='/iconTransparent.png'
-                  width={32}
-                  height={32}
-                  alt='투명'
-                />
-              </button>
-              {bgList.map((bg) => (
                 <button
-                  key={bg}
-                  className='mx-1 w-8 h-8 rounded-lg shadow-sm'
-                  style={{ backgroundColor: bg }}
-                  onClick={() => addTextBg(bg)}
-                ></button>
-              ))}
+                  className='p-2 w-full bg-linear-to-bl from-violet-500 to-fuchsia-500 opacity-90 text-white font-semibold rounded-lg '
+                  onClick={addText}
+                  disabled={submitted}
+                >
+                  텍스트 추가
+                </button>
+                <div className='relative w-full'>
+                  <div className='w-full h-full bg-white rounded-lg'></div>
+                  <button
+                    className='absolute left-0 top-0 p-2 w-full bg-linear-to-bl from-violet-500 to-fuchsia-500 text-transparent bg-clip-text border-[1px] border-violet-500 opacity-90  bg-white font-semibold rounded-lg '
+                    onClick={handleSubmit}
+                    disabled={submitted}
+                  >
+                    저장
+                  </button>
+                </div>
+              </div>
             </div>
-          )}
-          <button onClick={deleteText} className={`${btn} p-3 text-red-600`}>
-            삭제
-          </button>
-        </div>
-        {showColorPicker && (
-          <div className='max-w-[500px] fixed bottom-0 left-[50%] translate-x-[-50%] w-full p-2'>
-            <ColorPicker
-              hideInput={['rgb', 'hsv']}
-              color={color}
-              height={100}
-              onChange={setColor}
-              onChangeComplete={changeFontColor}
-              hideAlpha
-            />
+            <div
+              ref={menuRef}
+              style={{
+                transform: 'translateY(100%)',
+                boxShadow: 'rgba(100, 100, 111, 0.7) 0px 7px 29px 0px',
+              }}
+              className='fixed max-w-[500px] bottom-0 left-[50%] translate-x-[-50%] w-full overflow-hidden rounded-tl-xl border-[1px] border-black/10 rounded-tr-xl bg-white/50 backdrop-blur-2xl divide-y-[1px] divide-black/10'
+            >
+              <div className='p-3 flex justify-center' data-type='text'>
+                <button
+                  title='폰트변경'
+                  className='px-4'
+                  onClick={changeFontStyle}
+                  data-type='text'
+                >
+                  <Image
+                    src='/iconFont.svg'
+                    width={24}
+                    height={24}
+                    alt='폰트변경'
+                  />
+                </button>
+                <button
+                  title='굵기 변경'
+                  className='px-4'
+                  onClick={changeFontWeight}
+                  data-type='text'
+                >
+                  <Image
+                    src='/iconBold.svg'
+                    width={24}
+                    height={24}
+                    alt='굵기 변경'
+                  />
+                </button>
+                <button
+                  title='정렬 변경'
+                  className='px-4'
+                  onClick={changeTextAlign}
+                  data-type='text'
+                >
+                  <Image
+                    src='/iconAlign.svg'
+                    width={24}
+                    height={24}
+                    alt='정렬 변경'
+                  />
+                </button>
+                <button
+                  title='색상 변경'
+                  className='px-4'
+                  onClick={handleColorChangeBtnClick}
+                  data-type='text'
+                >
+                  <Image
+                    src='/iconColor.svg'
+                    width={24}
+                    height={24}
+                    alt='색상 변경'
+                  />
+                </button>
+                <button
+                  title='텍스트 배경색'
+                  className='px-4'
+                  onClick={openTextBgSelection}
+                  data-type='text'
+                >
+                  <Image
+                    src='/iconTextBg.svg'
+                    width={24}
+                    height={24}
+                    alt='텍스트 배경색'
+                  />
+                </button>
+              </div>
+              {showTextBgPicker && (
+                <div className='p-3 flex justify-center' data-type='text'>
+                  <button
+                    className='mx-1 w-8 h-8 rounded-lg shadow-sm'
+                    onClick={removeTextBg}
+                  >
+                    <Image
+                      src='/iconTransparent.png'
+                      width={32}
+                      height={32}
+                      alt='투명'
+                    />
+                  </button>
+                  {bgList.map((bg) => (
+                    <button
+                      key={bg}
+                      className='mx-1 w-8 h-8 rounded-lg shadow-sm'
+                      style={{ backgroundColor: bg }}
+                      onClick={() => addTextBg(bg)}
+                    ></button>
+                  ))}
+                </div>
+              )}
+              <button
+                onClick={deleteText}
+                className={`${btn} p-3 text-red-600`}
+              >
+                삭제
+              </button>
+            </div>
+            {showColorPicker && (
+              <div className='max-w-[500px] fixed bottom-0 left-[50%] translate-x-[-50%] w-full p-2'>
+                <ColorPicker
+                  hideInput={['rgb', 'hsv']}
+                  color={color}
+                  height={100}
+                  onChange={setColor}
+                  onChangeComplete={changeFontColor}
+                  hideAlpha
+                />
+              </div>
+            )}
           </div>
-        )}
+        </div>
+        <div className='fixed right-4'>
+          <LayerControl canvas={canvas} />
+        </div>
       </div>
     </>
   );
