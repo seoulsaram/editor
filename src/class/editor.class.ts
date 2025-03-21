@@ -1,6 +1,7 @@
 import * as fabric from 'fabric';
 import FabricCanvas from './fabric.class';
 import { hexToRgba } from '../utils/color.utils';
+import * as Anchor from '../utils/anchor.utils';
 
 class TextCanvas extends FabricCanvas {
   public addText({ content, font }: { content?: string; font: string }) {
@@ -85,24 +86,24 @@ class TextCanvas extends FabricCanvas {
     const customControl = {
       bl: new fabric.Control({
         ...object.controls.bl,
-        render: this.renderRctAnchor,
+        render: Anchor.renderRctAnchor,
       }),
       br: new fabric.Control({
         ...object.controls.br,
-        render: this.renderRctAnchor,
+        render: Anchor.renderRctAnchor,
       }),
       tl: new fabric.Control({
         ...object.controls.tl,
-        render: this.renderRctAnchor,
+        render: Anchor.renderRctAnchor,
       }),
       tr: new fabric.Control({
         ...object.controls.tr,
-        render: this.renderRctAnchor,
+        render: Anchor.renderRctAnchor,
       }),
       mtr: new fabric.Control({
         ...object.controls.mtr,
         offsetY: -15,
-        render: this.renderCircleAnchor,
+        render: Anchor.renderCircleAnchor,
       }),
     };
     object.controls = customControl;
@@ -116,24 +117,24 @@ class TextCanvas extends FabricCanvas {
     const customControl = {
       bl: new fabric.Control({
         ...text.controls.bl,
-        render: this.renderRctAnchor,
+        render: Anchor.renderRctAnchor,
       }),
       br: new fabric.Control({
         ...text.controls.br,
-        render: this.renderRctAnchor,
+        render: Anchor.renderRctAnchor,
       }),
       tl: new fabric.Control({
         ...text.controls.tl,
-        render: this.renderRctAnchor,
+        render: Anchor.renderRctAnchor,
       }),
       tr: new fabric.Control({
         ...text.controls.tr,
-        render: this.renderRctAnchor,
+        render: Anchor.renderRctAnchor,
       }),
       mtr: new fabric.Control({
         ...text.controls.mtr,
         offsetY: -15,
-        render: this.renderCircleAnchor,
+        render: Anchor.renderCircleAnchor,
       }),
     };
     text.controls = customControl;

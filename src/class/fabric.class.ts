@@ -1,5 +1,6 @@
 import * as fabric from 'fabric';
-import { fileToDataURL, resizeImageSize } from '../utils/image.utils';
+import * as Background from '../utils/background.utils';
+import * as GuideLine from '../utils/Guideline.utils';
 import { extractCommonColor } from '../utils/color.utils';
 
 const MAX_SCALE = 10;
@@ -70,96 +71,32 @@ class FabricCanvas {
     this.addEvents();
   }
 
-  public async addBgImage(bgImgPath: File) {
-    if (bgImgPath.type.includes('video')) {
-      this.renderVideo(bgImgPath);
-    } else {
-      this.renderImage(bgImgPath);
-    }
-  }
-
-  renderVideo(file: File) {
-    const videoEl = document.createElement('video');
-    videoEl.id = 'video1';
-    videoEl.src = URL.createObjectURL(file);
-
-    videoEl.onloadedmetadata = () => {
-      // 비디오 원본 크기로 설정
-      const originalW = videoEl.videoWidth;
-      const originalH = videoEl.videoHeight;
-      this.videoDuration = videoEl.duration * 1000;
-
-      videoEl.width = originalW;
-      videoEl.height = originalH;
-
-      // 크기 조정
-      const { width, height } = resizeImageSize(
-        originalW,
-        originalH,
-        this.width,
-        this.height
-      );
-
-      const fabricVideo = new fabric.FabricImage(videoEl, {
-        objectCaching: false,
-        width: originalW,
-        height: originalH,
-        scaleX: width / originalW,
-        scaleY: height / originalH,
-        selectable: false,
+  public async addBgImage(file: File) {
+    if (file.type.includes('video')) {
+      const { width, height, videoDuration } = await Background.renderVideo({
+        canvas: this,
+        file,
+        height: this.height,
+        width: this.width,
       });
-
-      this.canvas.setDimensions({ width, height });
+      this.videoDuration = videoDuration;
       this.width = width;
       this.height = height;
-      this.canvas.backgroundImage = fabricVideo;
-      videoEl.play();
-    };
+    } else {
+      const { width, height, bgHeight, bgWidth } = await Background.renderImage(
+        { file, canvas: this, width: this.width, height: this.height }
+      );
 
-    videoEl.onended = () => videoEl.play();
-    videoEl.onerror = () => alert('비디오 로딩에 실패했습니다.');
-
-    const render = () => {
-      this.canvas.renderAll();
-      fabric.util.requestAnimFrame(render);
-    };
-    fabric.util.requestAnimFrame(render);
-  }
-
-  async renderImage(file: File) {
-    const url = await fileToDataURL(file);
-    const bg = await fabric.FabricImage.fromURL(url, {
-      crossOrigin: 'anonymous',
-    });
-
-    if (!bg) {
-      alert('이미지 로딩에 실패했습니다.');
-      return;
+      this.width = width;
+      this.height = height;
+      this.bgWidth = bgWidth;
+      this.bgHeight = bgHeight;
+      const pixels = this.canvas
+        .getContext()
+        .getImageData(0, 0, width, height).data;
+      this.canvas.setDimensions({ width, height });
+      this.defaultTextColor = extractCommonColor(pixels);
     }
-
-    const { width, height } = resizeImageSize(
-      bg.width,
-      bg.height,
-      this.width,
-      this.height
-    );
-
-    this.bgWidth = bg.width;
-    this.bgHeight = bg.height;
-
-    this.canvas.setDimensions({ width, height });
-    this.width = width;
-    this.height = height;
-    bg.scaleX = this.width / bg.width;
-    bg.scaleY = this.height / bg.height;
-    this.canvas.backgroundImage = bg;
-    this.canvas.renderAll();
-
-    const pixels = this.canvas
-      .getContext()
-      .getImageData(0, 0, width, height).data;
-
-    this.defaultTextColor = extractCommonColor(pixels);
   }
 
   hideTooltip() {
@@ -219,8 +156,8 @@ class FabricCanvas {
 
     const showTooltip = this.showTooltip.bind(this);
     const hideTooltip = this.hideTooltip.bind(this);
-    const setActiveObj = this.setActiveObject.bind(this);
     const updateLayers = this.updateLayers.bind(this);
+
     const handleObjectMoving = this.handleObjectMoving.bind(this);
     const handleObjectSelected = this.handleObjectSelected.bind(this);
     const notifyObjectChange = this.notifyObjectChange.bind(this);
@@ -247,14 +184,13 @@ class FabricCanvas {
       handleObjectMoving(target);
     });
     this.canvas.on('object:modified', () => {
-      this.clearGuidelines(this.canvas);
+      GuideLine.clearGuidelines(this);
       updateLayers();
       this.notifyObjectChange();
     });
 
     this.canvas.on('object:added', function (opt) {
       const target = opt.target;
-      setActiveObj(target);
       showTooltip(target);
     });
     this.canvas.on('mouse:down', function (opt) {
@@ -294,13 +230,11 @@ class FabricCanvas {
           }
         });
       }
-      setActiveObj(atvObj);
       canvas.requestRenderAll();
     });
 
     this.canvas.on('mouse:wheel', function (opt) {
       const active = canvas.getActiveObject();
-      setActiveObj(active || null);
       if (opt.e.ctrlKey && active) {
         const delta = opt.e.deltaY;
         let scale = active.scaleX || 1; // 현재 스케일 가져오기
@@ -337,33 +271,7 @@ class FabricCanvas {
     });
   }
 
-  renderRctAnchor(ctx: CanvasRenderingContext2D, left: number, top: number) {
-    ctx.save(); // 이전 상태 저장
-    ctx.fillStyle = '#ffffff'; // 배경색
-    ctx.strokeStyle = '#99c0ff'; // 선 색상
-
-    // 사각형 렌더링
-    ctx.beginPath();
-    ctx.fillRect(left - 4, top - 4, 8, 8); // 배경 채우기
-    ctx.strokeRect(left - 4, top - 4, 8, 8); // 테두리 그리기
-    ctx.closePath();
-
-    ctx.restore(); // 이전 상태 복원
-  }
-  renderCircleAnchor(ctx: CanvasRenderingContext2D, left: number, top: number) {
-    ctx.beginPath();
-    ctx.arc(left, top, 4, 0, Math.PI * 2, false);
-    ctx.fillStyle = '#99c0ff';
-    ctx.fill();
-    ctx.strokeStyle = '#99c0ff';
-    ctx.stroke();
-  }
-
-  setActiveObject(obj: fabric.Object | null) {
-    this.activeObject = obj;
-  }
-
-  handleObjectMoving(target: fabric.Object) {
+  private handleObjectMoving(target: fabric.Object) {
     const canvasWidth = this.width;
     const canvasHeight = this.height;
 
@@ -380,167 +288,99 @@ class FabricCanvas {
     const centerX = left + (obj.width * obj.scaleX) / 2;
     const centerY = top + (obj.height * obj.scaleY) / 2;
 
-    const newGuidelines = [];
-    this.clearGuidelines(this.canvas);
+    const newGuidelines: fabric.Line[] = [];
+    GuideLine.clearGuidelines(this);
 
     let snapped = false;
 
-    if (Math.abs(left) < snappingDistance) {
-      obj.set({ left: 0 });
-      if (!this.guidelineExists({ canvas: this.canvas, id: 'vertical-left' })) {
-        const line = this.createVerticalGuideline({
-          canvas: this.canvas,
-          x: 0,
-          id: 'vertical-left',
-        });
-        newGuidelines.push(line);
-        this.canvas.add(line);
-      }
-      snapped = true;
-    }
+    const snapPoints = [
+      {
+        condition: Math.abs(left) < snappingDistance,
+        set: { left: 0 },
+        id: 'vertical-left',
+        createLine: () =>
+          GuideLine.createVerticalGuideline({
+            canvas: this.canvas,
+            x: 0,
+            id: 'vertical-left',
+          }),
+      },
+      {
+        condition: Math.abs(top) < snappingDistance,
+        set: { top: 0 },
+        id: 'horizontal-top',
+        createLine: () =>
+          GuideLine.createHorizontalGuideline({
+            canvas: this.canvas,
+            y: 0,
+            id: 'horizontal-top',
+          }),
+      },
+      {
+        condition: Math.abs(right - canvasWidth) < snappingDistance,
+        set: { left: canvasWidth - obj.width * obj.scaleX },
+        id: 'vertical-right',
+        createLine: () =>
+          GuideLine.createVerticalGuideline({
+            canvas: this.canvas,
+            x: canvasWidth,
+            id: 'vertical-right',
+          }),
+      },
+      {
+        condition: Math.abs(bottom - canvasHeight) < snappingDistance,
+        set: { top: canvasHeight - obj.height * obj.scaleY },
+        id: 'horizontal-bottom',
+        createLine: () =>
+          GuideLine.createHorizontalGuideline({
+            canvas: this.canvas,
+            y: canvasHeight,
+            id: 'horizontal-bottom',
+          }),
+      },
+      {
+        condition: Math.abs(centerX - canvasWidth / 2) < snappingDistance,
+        set: { left: canvasWidth / 2 - (obj.width * obj.scaleX) / 2 },
+        id: 'vertical-center',
+        createLine: () =>
+          GuideLine.createVerticalGuideline({
+            canvas: this.canvas,
+            x: canvasWidth / 2,
+            id: 'vertical-center',
+          }),
+      },
+      {
+        condition: Math.abs(centerY - canvasHeight / 2) < snappingDistance,
+        set: { top: canvasHeight / 2 - (obj.height * obj.scaleY) / 2 },
+        id: 'horizontal-center',
+        createLine: () =>
+          GuideLine.createHorizontalGuideline({
+            canvas: this.canvas,
+            y: canvasHeight / 2,
+            id: 'horizontal-center',
+          }),
+      },
+    ];
 
-    if (Math.abs(top) < snappingDistance) {
-      obj.set({ top: 0 });
-      if (
-        !this.guidelineExists({ canvas: this.canvas, id: 'horizontal-top' })
-      ) {
-        const line = this.createHorizontalGuideline({
-          canvas: this.canvas,
-          y: 0,
-          id: 'horizontal-top',
-        });
-        newGuidelines.push(line);
-        this.canvas.add(line);
+    snapPoints.forEach(({ condition, set, id, createLine }) => {
+      if (condition) {
+        obj.set(set);
+        if (!GuideLine.guidelineExists({ canvas: this, id })) {
+          const line = createLine();
+          newGuidelines.push(line);
+          this.canvas.add(line);
+        }
+        snapped = true;
       }
-      snapped = true;
-    }
-
-    if (Math.abs(right - canvasWidth) < snappingDistance) {
-      obj.set({ left: canvasWidth - obj.width * obj.scaleX });
-      if (
-        !this.guidelineExists({ canvas: this.canvas, id: 'vertical-right' })
-      ) {
-        const line = this.createVerticalGuideline({
-          canvas: this.canvas,
-          x: canvasWidth,
-          id: 'vertical-right',
-        });
-        newGuidelines.push(line);
-        this.canvas.add(line);
-      }
-      snapped = true;
-    }
-
-    if (Math.abs(bottom - canvasHeight) < snappingDistance) {
-      obj.set({ top: canvasHeight - obj.height * obj.scaleY });
-      if (
-        !this.guidelineExists({ canvas: this.canvas, id: 'horizontal-bottom' })
-      ) {
-        const line = this.createHorizontalGuideline({
-          canvas: this.canvas,
-          y: canvasHeight,
-          id: 'horizontal-bottom',
-        });
-        newGuidelines.push(line);
-        this.canvas.add(line);
-      }
-      snapped = true;
-    }
-
-    if (Math.abs(centerX - canvasWidth / 2) < snappingDistance) {
-      obj.set({ left: canvasWidth / 2 - (obj.width * obj.scaleX) / 2 });
-      if (
-        !this.guidelineExists({ canvas: this.canvas, id: 'vertical-center' })
-      ) {
-        const line = this.createVerticalGuideline({
-          canvas: this.canvas,
-          x: canvasWidth / 2,
-          id: 'vertical-center',
-        });
-        newGuidelines.push(line);
-        this.canvas.add(line);
-      }
-      snapped = true;
-    }
-
-    if (Math.abs(centerY - canvasHeight / 2) < snappingDistance) {
-      obj.set({ top: canvasHeight / 2 - (obj.height * obj.scaleY) / 2 });
-      if (
-        !this.guidelineExists({ canvas: this.canvas, id: 'horizontal-center' })
-      ) {
-        const line = this.createHorizontalGuideline({
-          canvas: this.canvas,
-          y: canvasHeight / 2,
-          id: 'horizontal-center',
-        });
-        newGuidelines.push(line);
-        this.canvas.add(line);
-      }
-      snapped = true;
-    }
+    });
 
     if (!snapped) {
-      this.clearGuidelines(this.canvas);
+      GuideLine.clearGuidelines(this);
     } else {
       this.guidelines = newGuidelines;
     }
 
     this.canvas.renderAll();
-  }
-
-  createVerticalGuideline({
-    canvas,
-    x,
-    id,
-  }: {
-    canvas: fabric.Canvas;
-    x: number;
-    id: string;
-  }) {
-    return new fabric.Line([x, 0, x, canvas.height], this.guideLineOpt(id));
-  }
-
-  createHorizontalGuideline({
-    canvas,
-    y,
-    id,
-  }: {
-    canvas: fabric.Canvas;
-    y: number;
-    id: string;
-  }) {
-    return new fabric.Line([0, y, canvas.width, y], this.guideLineOpt(id));
-  }
-
-  guideLineOpt(id: string) {
-    return {
-      id,
-      stroke: 'red',
-      strokeWidth: 1,
-      selectable: false,
-      evented: false,
-      // strokeDashArray: [5, 5],
-      opacity: 0.8,
-    };
-  }
-
-  clearGuidelines(canvas: fabric.Canvas) {
-    const objects = canvas.getObjects('line') as fabric.Object[];
-    objects.forEach((obj) => {
-      const id = obj.get('id');
-      if ((id && id.startsWith('vertical-')) || id.startsWith('horizontal-')) {
-        canvas.remove(obj);
-      }
-    });
-    canvas.renderAll();
-  }
-
-  guidelineExists({ canvas, id }: { canvas: fabric.Canvas; id: string }) {
-    const objects = canvas.getObjects('line');
-    return objects.some((obj) => {
-      const objId = obj.get('id');
-      return objId === id;
-    });
   }
 
   deleteObject() {
