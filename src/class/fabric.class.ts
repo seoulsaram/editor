@@ -32,7 +32,6 @@ class FabricCanvas {
   protected canvas!: fabric.Canvas;
   protected width: number;
   protected height: number;
-  protected activeObject?: fabric.Object | null;
   protected bgWidth?: number;
   protected bgHeight?: number;
   protected isAdjusted?: boolean;
@@ -45,21 +44,23 @@ class FabricCanvas {
 
   protected videoDuration?: number = 3000;
 
-  private guidelines?: fabric.Line[];
   private layers: Array<LayerType> = [];
-  public selectedLayer?: LayerType;
 
   private onObjectChangeCallbacks: ObjectChangeCallback[] = [];
+
+  private setSelectedLayerId: (id: string) => void;
 
   constructor(
     containerId: string,
     width: number,
     height: number,
-    menuRef: HTMLDivElement | null
+    menuRef: HTMLDivElement | null,
+    setSelectedLayerId: (id: string) => void
   ) {
     this.width = width;
     this.height = height;
     this.menuRef = menuRef;
+    this.setSelectedLayerId = setSelectedLayerId;
 
     this.canvas = new fabric.Canvas(containerId, {
       width,
@@ -150,34 +151,43 @@ class FabricCanvas {
   }
 
   private addEvents() {
-    let atvObj: fabric.Object | null = null;
     const canvas = this.canvas;
-    this.activeObject = atvObj;
 
     const showTooltip = this.showTooltip.bind(this);
     const hideTooltip = this.hideTooltip.bind(this);
     const updateLayers = this.updateLayers.bind(this);
 
     const handleObjectMoving = this.handleObjectMoving.bind(this);
-    const handleObjectSelected = this.handleObjectSelected.bind(this);
     const notifyObjectChange = this.notifyObjectChange.bind(this);
+    const setSelectedLayerId = this.setSelectedLayerId.bind(this);
 
-    this.canvas.on('object:added', () => {
-      this.updateLayers();
+    this.canvas.on('selection:created', function (opt) {
+      const objId = opt.selected[0].get('id');
+      setSelectedLayerId(objId);
+    });
+    this.canvas.on('selection:cleared', function () {
+      setSelectedLayerId('');
+    });
+    this.canvas.on('selection:updated', function (opt) {
+      const objId = opt.selected[0].get('id');
+      setSelectedLayerId(objId);
+    });
+
+    this.canvas.on('object:added', function (opt) {
+      updateLayers();
       notifyObjectChange();
+
+      const id = opt.target?.get('id');
+
+      if (id && (id.startsWith('vertical-') || id.startsWith('horizontal-'))) {
+        return;
+      }
+      setSelectedLayerId(id);
     });
     this.canvas.on('object:removed', function () {
       updateLayers();
       notifyObjectChange();
     });
-
-    this.canvas.on('selection:created', function (opt) {
-      handleObjectSelected(opt.selected);
-    });
-    this.canvas.on('selection:updated', function (opt) {
-      handleObjectSelected(opt.selected);
-    });
-    this.canvas.on('selection:cleared', () => (this.selectedLayer = undefined));
 
     this.canvas.on('object:moving', function (opt) {
       const target = opt.target;
@@ -186,7 +196,7 @@ class FabricCanvas {
     this.canvas.on('object:modified', () => {
       GuideLine.clearGuidelines(this);
       updateLayers();
-      this.notifyObjectChange();
+      notifyObjectChange();
     });
 
     this.canvas.on('object:added', function (opt) {
@@ -212,7 +222,6 @@ class FabricCanvas {
 
       if (target) {
         canvas.setActiveObject(target);
-        atvObj = target;
 
         let lastGoodTop = 0;
         let lastGoodLeft = 0;
@@ -376,18 +385,18 @@ class FabricCanvas {
 
     if (!snapped) {
       GuideLine.clearGuidelines(this);
-    } else {
-      this.guidelines = newGuidelines;
     }
 
     this.canvas.renderAll();
   }
 
   deleteObject() {
-    if (!this.activeObject) return;
-    this.canvas.remove(this.activeObject);
-    this.hideTooltip();
-    this.activeObject = null;
+    const activeObject = this.canvas.getActiveObject();
+    console.log('activeObject', activeObject);
+    if (activeObject) {
+      this.canvas.remove(activeObject);
+      this.hideTooltip();
+    }
   }
 
   getCanvas() {
@@ -421,18 +430,12 @@ class FabricCanvas {
     }
   }
 
-  handleObjectSelected(
-    e: fabric.FabricObject<
-      Partial<fabric.FabricObjectProps>,
-      fabric.SerializedObjectProps,
-      fabric.ObjectEvents
-    >[]
-  ) {
-    const selectedObject = e ? e[0] : null;
-    if (selectedObject) {
-      this.selectedLayer = selectedObject.get('id');
-    } else {
-      this.selectedLayer = undefined;
+  handleActiveObject(objId: string) {
+    const obj = this.canvas.getObjects().find((obj) => obj.get('id') === objId);
+    if (obj) {
+      this.canvas.setActiveObject(obj);
+      this.canvas.renderAll();
+      this.showTooltip(obj);
     }
   }
 

@@ -1,10 +1,11 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import TextCanvas from '../class/editor.class';
-import Image from 'next/image';
 import * as fabric from 'fabric';
+import Image from 'next/image';
 import 'react-color-palette/css';
 import { ColorPicker, useColor, type IColor } from 'react-color-palette';
+
+import TextCanvas from '../class/editor.class';
 import LayerControl from './LayerControl';
 
 type FontStyle = '42dotSans' | 'DynaPuff' | 'Hahmlet';
@@ -61,6 +62,8 @@ export default function Editor({ background, onSubmit }: Props) {
 
   const [color, setColor] = useColor('#123123');
 
+  const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
+
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const styleRef = useRef<StyleRef>({
@@ -114,7 +117,8 @@ export default function Editor({ background, onSubmit }: Props) {
       'texteditCanvas',
       clientWidth > 500 ? 500 : clientWidth - 24,
       clientHeight > 500 ? 500 : clientHeight - 50,
-      menuRef.current
+      menuRef.current,
+      setSelectedLayerId
     );
 
     if (background) {
@@ -129,17 +133,14 @@ export default function Editor({ background, onSubmit }: Props) {
 
     return () => {
       canvasInstance.getCanvas().dispose();
+      canvasInstance.removeObjectChangeListener(handleObjectChange);
     };
   }, [background]);
 
+  const [layers, setLayers] = useState<fabric.Object[]>([]);
+
   const handleObjectChange = (objects: fabric.Object[]) => {
-    console.log('objec', objects);
-    // const layers = objects.map((obj) => ({
-    //   id: obj.get('id'),
-    //   type: obj.type,
-    //   zIndex: obj.zIndex,
-    // }));
-    // setLayers(layers);
+    setLayers(objects);
   };
 
   function addText() {
@@ -246,7 +247,7 @@ export default function Editor({ background, onSubmit }: Props) {
               </button>
             ))}
           </div>
-          <div className='relative flex flex-col gap-4'>
+          <div className='mt-4 relative flex flex-col gap-4 items-center'>
             <canvas
               ref={containerRef}
               className='rounded-lg shadow-xl overflow-hidden'
@@ -397,7 +398,12 @@ export default function Editor({ background, onSubmit }: Props) {
           </div>
         </div>
         <div className='fixed right-4'>
-          <LayerControl canvas={canvas} />
+          <LayerControl
+            selected={selectedLayerId}
+            setSelected={setSelectedLayerId}
+            canvas={canvas}
+            layers={layers}
+          />
         </div>
       </div>
     </>
