@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import * as fabric from 'fabric';
 
 import TextCanvas from '../class/editor.class';
@@ -15,6 +15,10 @@ export default function LayerControl({
   layers,
   canvas,
 }: Props) {
+  const [layerOpacityMap, setLayerOpacityMap] = useState<{
+    [key: string]: number;
+  }>({});
+
   useEffect(() => {
     if (selected && canvas) {
       if (!canvas) return;
@@ -63,6 +67,27 @@ export default function LayerControl({
     canvas?.updateLayers();
   }
 
+  function hideSelectedLayer() {
+    if (!selected || !canvas) return;
+
+    const object = canvas
+      .getCanvas()
+      .getObjects()
+      .find((obj) => obj.get('id') === selected);
+
+    if (!object) return;
+
+    const newMap = { ...layerOpacityMap };
+    if (!(selected in newMap)) {
+      newMap[selected] = object.opacity;
+    }
+    const newOpacity = object.opacity === 0 ? newMap[selected] : 0;
+    object.set('opacity', Number(newOpacity));
+
+    canvas.getCanvas().renderAll();
+    setLayerOpacityMap(newMap);
+  }
+
   if (!layers.length) return null;
   return (
     <div className='flex flex-col p-1 border-[1px] border-black/10 bg-white rounded-lg'>
@@ -82,6 +107,14 @@ export default function LayerControl({
           }
         >
           down
+        </button>
+        <button onClick={hideSelectedLayer}>
+          {canvas
+            ?.getCanvas()
+            .getObjects()
+            .find((obj) => obj.get('id') === selected)?.opacity === 0
+            ? 'show'
+            : 'hide'}
         </button>
       </div>
       {layers.map((layer) => (
