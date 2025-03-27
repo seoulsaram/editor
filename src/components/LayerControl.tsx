@@ -22,9 +22,68 @@ export default function LayerControl({
     }
   }, [selected, canvas]);
 
+  function moveSelectedLayer(direction: 'up' | 'down') {
+    if (!selected && !canvas) return;
+    const objects = canvas?.getCanvas().getObjects();
+    const object = objects?.find((obj) => obj.get('id') === selected);
+
+    if (object && objects?.length) {
+      const currentIdx = objects.indexOf(object);
+      if (direction === 'up' && currentIdx < objects.length - 1) {
+        const temp = objects[currentIdx];
+        objects[currentIdx] = objects[currentIdx + 1];
+        objects[currentIdx + 1] = temp;
+      } else if (direction === 'down' && currentIdx > 0) {
+        const temp = objects[currentIdx];
+        objects[currentIdx] = objects[currentIdx - 1];
+        objects[currentIdx - 1] = temp;
+      }
+    }
+
+    const backgroundImg = canvas?.getCanvas().backgroundImage;
+
+    canvas?.getCanvas().remove(
+      ...canvas
+        ?.getCanvas()
+        .getObjects()
+        .filter((obj) => obj !== backgroundImg)
+    );
+
+    objects?.forEach((obj) => canvas?.getCanvas().add(obj));
+    canvas?.getCanvas().renderAll();
+
+    objects?.forEach((obj, idx) => {
+      obj.set('zIndex', idx);
+    });
+
+    if (!object) return;
+    canvas?.handleActiveObject(object.get('id'));
+    canvas?.getCanvas().renderAll();
+
+    canvas?.updateLayers();
+  }
+
   if (!layers.length) return null;
   return (
     <div className='flex flex-col p-1 border-[1px] border-black/10 bg-white rounded-lg'>
+      <div className='flex justify-between gap-1'>
+        <button
+          className='h-6 flex items-center px-2 bg-amber-300 text-center rounded-2xl font-semibold'
+          onClick={() => moveSelectedLayer('up')}
+          disabled={!selected || layers[0].get('id') === selected}
+        >
+          up
+        </button>
+        <button
+          className='h-6 flex items-center px-2 bg-amber-300 text-center rounded-2xl font-semibold'
+          onClick={() => moveSelectedLayer('down')}
+          disabled={
+            !selected || layers[layers.length - 1].get('id') === selected
+          }
+        >
+          down
+        </button>
+      </div>
       {layers.map((layer) => (
         <button
           onClick={() => setSelected(layer.get('id'))}
