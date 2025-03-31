@@ -50,6 +50,8 @@ class FabricCanvas {
 
   private setSelectedLayerId: (id: string) => void;
 
+  private handleDeleteKeyBound: (e: KeyboardEvent) => void;
+
   constructor(
     containerId: string,
     width: number,
@@ -61,6 +63,7 @@ class FabricCanvas {
     this.height = height;
     this.menuRef = menuRef;
     this.setSelectedLayerId = setSelectedLayerId;
+    this.handleDeleteKeyBound = this.handleDeleteKey.bind(this);
 
     this.canvas = new fabric.Canvas(containerId, {
       width,
@@ -97,6 +100,21 @@ class FabricCanvas {
         .getImageData(0, 0, width, height).data;
       this.canvas.setDimensions({ width, height });
       this.defaultTextColor = extractCommonColor(pixels);
+    }
+  }
+
+  handleDeleteKey(e: KeyboardEvent) {
+    const activeObj = this.canvas.getActiveObject();
+    if (!activeObj) return;
+
+    const isDeleteKey = e.key === 'Delete' || e.key === 'Backspace';
+    if (!isDeleteKey) return;
+
+    const isTextNode = activeObj.type === 'i-text';
+    const isEditingText = isTextNode && (activeObj as fabric.IText).isEditing;
+
+    if (!isEditingText) {
+      this.deleteObject();
     }
   }
 
@@ -517,6 +535,12 @@ class FabricCanvas {
     this.bgWidth = undefined;
     this.bgHeight = undefined;
     this.controlImage = undefined;
+  }
+
+  clear() {
+    window.removeEventListener('keydown', this.handleDeleteKeyBound);
+    this.canvas.clear();
+    this.canvas.dispose();
   }
 }
 

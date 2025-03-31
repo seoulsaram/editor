@@ -132,7 +132,7 @@ export default function Editor({ background, onSubmit }: Props) {
     }
 
     return () => {
-      canvasInstance.getCanvas().dispose();
+      canvasInstance.clear();
       canvasInstance.removeObjectChangeListener(handleObjectChange);
     };
   }, [background]);
