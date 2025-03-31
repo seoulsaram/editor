@@ -141,22 +141,16 @@ class TextCanvas extends FabricCanvas {
   }
 
   changeFontStyle(fontName: string) {
-    if (!this.activeObject || this.activeObject.type !== 'i-text') return;
-    const activeText = this.activeObject as fabric.IText;
-    activeText.set('fontFamily', fontName);
-    this.canvas.requestRenderAll();
+    this.updateTextObj('fontFamily', fontName);
   }
   changeFontWeight(weight: number) {
-    if (!this.activeObject || this.activeObject.type !== 'i-text') return;
-    const activeText = this.activeObject as fabric.IText;
-    activeText.set('fontWeight', weight);
-    this.canvas.requestRenderAll();
+    this.updateTextObj('fontWeight', weight);
   }
 
   changeTextAlign(align?: string) {
-    if (!this.activeObject || this.activeObject.type !== 'i-text') return;
-    const activeText = this.activeObject as fabric.IText;
-
+    const activeObject = this.canvas.getActiveObject();
+    if (!activeObject || activeObject.type !== 'i-text') return;
+    const activeText = activeObject as fabric.IText;
     const aligns = ['left', 'center', 'right'];
     const currentAlign = activeText.textAlign;
     const currentIdx = aligns.indexOf(currentAlign);
@@ -167,26 +161,25 @@ class TextCanvas extends FabricCanvas {
   }
 
   changeFontColor(color: string) {
-    if (!this.activeObject || this.activeObject.type !== 'i-text') return;
-    const activeText = this.activeObject as fabric.IText;
-    activeText.set('fill', color);
-    this.canvas.requestRenderAll();
+    this.updateTextObj('fill', color);
   }
   addTextBg(color: string) {
-    if (!this.activeObject || this.activeObject.type !== 'i-text') return;
-    const activeText = this.activeObject as fabric.IText;
-    activeText.set('backgroundColor', hexToRgba(color, 0.5));
-    this.canvas.requestRenderAll();
-  }
-  removeTextBg() {
-    if (!this.activeObject || this.activeObject.type !== 'i-text') return;
-    const activeText = this.activeObject as fabric.IText;
-    activeText.set('backgroundColor', 'rgba(0,0,0,0)');
-    this.canvas.requestRenderAll();
+    this.updateTextObj('backgroundColor', hexToRgba(color, 0.5));
   }
 
-  setActiveObject(obj: fabric.Object | null) {
-    this.activeObject = obj;
+  removeTextBg() {
+    this.updateTextObj('backgroundColor', 'rgba(0,0,0,0)');
+  }
+
+  private updateTextObj<K extends keyof fabric.ITextProps>(
+    key: string,
+    value: fabric.ITextProps[K]
+  ) {
+    const activeObject = this.canvas.getActiveObject();
+    if (!activeObject || activeObject.type !== 'i-text') return;
+    const activeText = activeObject as fabric.IText;
+    activeText.set(key, value);
+    this.canvas.requestRenderAll();
   }
 
   saveTextData() {
