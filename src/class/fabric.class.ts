@@ -1,7 +1,7 @@
 import * as fabric from 'fabric';
 import * as Background from '../utils/background.utils';
 import * as GuideLine from '../utils/Guideline.utils';
-import { extractCommonColor } from '../utils/color.utils';
+import { extractAdjustedAverageColor } from '../utils/color.utils';
 
 const MAX_SCALE = 10;
 
@@ -99,7 +99,7 @@ class FabricCanvas {
         .getContext()
         .getImageData(0, 0, width, height).data;
       this.canvas.setDimensions({ width, height });
-      this.defaultTextColor = extractCommonColor(pixels);
+      this.defaultTextColor = extractAdjustedAverageColor(pixels);
     }
   }
 

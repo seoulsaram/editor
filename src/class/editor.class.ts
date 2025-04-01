@@ -156,8 +156,8 @@ class TextCanvas extends FabricCanvas {
     const currentIdx = aligns.indexOf(currentAlign);
     const nextIdx = (currentIdx + 1) % aligns.length;
     const nextAlign = align ? align : aligns[nextIdx];
-    activeText.set('textAlign', nextAlign);
-    this.canvas.requestRenderAll();
+
+    this.updateTextObj('textAlign', nextAlign);
   }
 
   changeFontColor(color: string) {

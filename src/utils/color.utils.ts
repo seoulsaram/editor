@@ -39,3 +39,44 @@ export function extractCommonColor(pixels: Uint8ClampedArray) {
   const result = averageGray >= 128 ? '#000000' : '#ffffff';
   return result;
 }
+
+export function extractAdjustedAverageColor(pixels: Uint8ClampedArray): string {
+  let totalR = 0;
+  let totalG = 0;
+  let totalB = 0;
+  const pixelCount = pixels.length / 4; // RGBA
+
+  for (let i = 0; i < pixels.length; i += 4) {
+    totalR += pixels[i]; // R
+    totalG += pixels[i + 1]; // G
+    totalB += pixels[i + 2]; // B
+    // alpha(pixels[i + 3])는 무시
+  }
+
+  const avgR = totalR / pixelCount;
+  const avgG = totalG / pixelCount;
+  const avgB = totalB / pixelCount;
+
+  // 평균 밝기 계산 (간단한 평균법)
+  const brightness = (avgR + avgG + avgB) / 3;
+
+  const gamma = brightness > 100 ? 0.9 : 2; // 어두우면 밝게, 밝으면 어둡게
+  const adjustGamma = (color: number) =>
+    Math.min(255, Math.pow(color / 255, 1 / gamma) * 255);
+
+  const baseFactor = (255 - brightness) / 255;
+  const factor = 1 + baseFactor * 1.5; // 가중치 곱
+
+  const adjust = (color: number) =>
+    adjustGamma(Math.min(255, Math.max(0, Math.round(color * factor))));
+
+  const adjustedR = adjust(avgR);
+  const adjustedG = adjust(avgG);
+  const adjustedB = adjust(avgB);
+
+  // RGB → HEX 변환
+  const toHex = (value: number) =>
+    Math.round(value).toString(16).padStart(2, '0');
+
+  return `#${toHex(adjustedR)}${toHex(adjustedG)}${toHex(adjustedB)}`;
+}
