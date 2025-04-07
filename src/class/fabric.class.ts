@@ -175,9 +175,11 @@ class FabricCanvas {
     const hideTooltip = this.hideTooltip.bind(this);
     const updateLayers = this.updateLayers.bind(this);
 
-    const handleObjectMoving = this.handleObjectMoving.bind(this);
+    const handleSnapGrid = this.handleSnapGrid.bind(this);
     const notifyObjectChange = this.notifyObjectChange.bind(this);
     const setSelectedLayerId = this.setSelectedLayerId.bind(this);
+
+    window.addEventListener('keydown', this.handleDeleteKeyBound);
 
     this.canvas.on('selection:created', function (opt) {
       const objId = opt.selected[0].get('id');
@@ -194,6 +196,7 @@ class FabricCanvas {
     this.canvas.on('object:added', function (opt) {
       updateLayers();
       notifyObjectChange();
+      showTooltip(opt.target);
 
       const id = opt.target?.get('id');
 
@@ -209,7 +212,7 @@ class FabricCanvas {
 
     this.canvas.on('object:moving', function (opt) {
       const target = opt.target;
-      handleObjectMoving(target);
+      handleSnapGrid(target);
     });
     this.canvas.on('object:modified', () => {
       GuideLine.clearGuidelines(this);
@@ -217,10 +220,6 @@ class FabricCanvas {
       notifyObjectChange();
     });
 
-    this.canvas.on('object:added', function (opt) {
-      const target = opt.target;
-      showTooltip(target);
-    });
     this.canvas.on('mouse:down', function (opt) {
       const target = opt.target;
       const hideMenuEvents: ObjEvents[] = ['deselected'];
@@ -298,100 +297,22 @@ class FabricCanvas {
     });
   }
 
-  private handleObjectMoving(target: fabric.Object) {
-    const canvasWidth = this.width;
-    const canvasHeight = this.height;
-
+  private handleSnapGrid(target: fabric.Object) {
     if (!target) return;
-    const obj = target;
-
-    const snappingDistance = 10;
-
-    const left = obj.left || 0;
-    const top = obj.top || 0;
-    const right = left + obj.width! * obj.scaleX!;
-    const bottom = top + obj.height! * obj.scaleY!;
-
-    const centerX = left + (obj.width * obj.scaleX) / 2;
-    const centerY = top + (obj.height * obj.scaleY) / 2;
 
     const newGuidelines: fabric.Line[] = [];
     GuideLine.clearGuidelines(this);
 
     let snapped = false;
 
-    const snapPoints = [
-      {
-        condition: Math.abs(left) < snappingDistance,
-        set: { left: 0 },
-        id: 'vertical-left',
-        createLine: () =>
-          GuideLine.createVerticalGuideline({
-            canvas: this.canvas,
-            x: 0,
-            id: 'vertical-left',
-          }),
-      },
-      {
-        condition: Math.abs(top) < snappingDistance,
-        set: { top: 0 },
-        id: 'horizontal-top',
-        createLine: () =>
-          GuideLine.createHorizontalGuideline({
-            canvas: this.canvas,
-            y: 0,
-            id: 'horizontal-top',
-          }),
-      },
-      {
-        condition: Math.abs(right - canvasWidth) < snappingDistance,
-        set: { left: canvasWidth - obj.width * obj.scaleX },
-        id: 'vertical-right',
-        createLine: () =>
-          GuideLine.createVerticalGuideline({
-            canvas: this.canvas,
-            x: canvasWidth,
-            id: 'vertical-right',
-          }),
-      },
-      {
-        condition: Math.abs(bottom - canvasHeight) < snappingDistance,
-        set: { top: canvasHeight - obj.height * obj.scaleY },
-        id: 'horizontal-bottom',
-        createLine: () =>
-          GuideLine.createHorizontalGuideline({
-            canvas: this.canvas,
-            y: canvasHeight,
-            id: 'horizontal-bottom',
-          }),
-      },
-      {
-        condition: Math.abs(centerX - canvasWidth / 2) < snappingDistance,
-        set: { left: canvasWidth / 2 - (obj.width * obj.scaleX) / 2 },
-        id: 'vertical-center',
-        createLine: () =>
-          GuideLine.createVerticalGuideline({
-            canvas: this.canvas,
-            x: canvasWidth / 2,
-            id: 'vertical-center',
-          }),
-      },
-      {
-        condition: Math.abs(centerY - canvasHeight / 2) < snappingDistance,
-        set: { top: canvasHeight / 2 - (obj.height * obj.scaleY) / 2 },
-        id: 'horizontal-center',
-        createLine: () =>
-          GuideLine.createHorizontalGuideline({
-            canvas: this.canvas,
-            y: canvasHeight / 2,
-            id: 'horizontal-center',
-          }),
-      },
-    ];
+    const snapPoints = GuideLine.getSnapPoints({
+      target,
+      canvasInstance: this,
+    });
 
     snapPoints.forEach(({ condition, set, id, createLine }) => {
       if (condition) {
-        obj.set(set);
+        target.set(set);
         if (!GuideLine.guidelineExists({ canvas: this, id })) {
           const line = createLine();
           newGuidelines.push(line);
@@ -410,7 +331,6 @@ class FabricCanvas {
 
   deleteObject() {
     const activeObject = this.canvas.getActiveObject();
-    console.log('activeObject', activeObject);
     if (activeObject) {
       this.canvas.remove(activeObject);
       this.hideTooltip();
@@ -419,10 +339,6 @@ class FabricCanvas {
 
   getCanvas() {
     return this.canvas;
-  }
-
-  getCanvasSize() {
-    return { width: this.width, height: this.height };
   }
 
   getLayers() {

@@ -257,7 +257,7 @@ export default function Editor({ background, onSubmit }: Props) {
             <div className='w-full flex justify-center'>
               <div
                 className='w-full flex gap-2'
-                style={{ maxWidth: canvas?.getCanvasSize().width }}
+                style={{ maxWidth: canvas?.getCanvas().width }}
               >
                 <button
                   className='p-2 w-full bg-linear-to-bl from-violet-500 to-fuchsia-500 opacity-90 text-white font-semibold rounded-lg '
